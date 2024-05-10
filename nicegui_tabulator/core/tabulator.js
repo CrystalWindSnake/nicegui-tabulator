@@ -65,10 +65,13 @@ export default {
 
   methods: {
     onEvent(eventName) {
-
       this.table.on(eventName, (...args) => {
         const eventArgs = extractEventArg(eventName, args);
         this.$emit('table-event', { eventName, args: eventArgs });
+
+        if (eventName === 'rowContext' || eventName === 'groupContext') {
+          args[0].preventDefault();
+        }
       });
     },
     run_table_method(name, ...args) {
