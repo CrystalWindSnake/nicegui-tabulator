@@ -1,6 +1,6 @@
 import threading
 from playwright.sync_api import Browser
-from nicegui import ui
+from nicegui import ui, app
 from nicegui.server import Server
 
 PORT = 3392
@@ -14,6 +14,9 @@ class ServerManager:
         self._context = browser.new_context()
         self._context.set_default_timeout(10000)
         self.ui_run_kwargs = {"port": PORT, "show": False, "reload": False}
+        self.connected = threading.Event()
+
+        app.on_startup(self.connected.set)
 
     def start_server(self) -> None:
         """Start the webserver in a separate thread. This is the equivalent of `ui.run()` in a normal script."""
@@ -34,17 +37,24 @@ class ServerManager:
         if self.server_thread is None:
             self.start_server()
 
-        return BrowserManager(self)
+        self.connected.clear()
+
+        return BrowserManager(self, self.connected)
 
 
 class BrowserManager:
-    def __init__(self, server: ServerManager) -> None:
+    def __init__(self, server: ServerManager, connect_event: threading.Event) -> None:
         self.__server = server
         self._page = self.__server._context.new_page()
-        # self._page.set_default_timeout(5000)
+        self.connected = connect_event
 
     def open(self, path: str):
         # self._page.wait_for_selector("body", timeout=10000)
+        # 启动成功
+        is_connected = self.connected.wait(5)
+        if not is_connected:
+            raise TimeoutError("Failed to connect to server")
+
         self._page.goto(
             f"http://localhost:{PORT}{path}",
             timeout=5000,
