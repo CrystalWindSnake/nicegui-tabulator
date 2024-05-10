@@ -89,11 +89,5 @@ export default {
       this.table.updateColumnDefinition(field, definition);
     },
 
-    updateDefinition(definition) {
-      convertDynamicProperties(definition, true);
-      this.table.updateDefinition(definition);
-    },
-
-
   },
 };
