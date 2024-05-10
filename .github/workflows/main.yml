@@ -1,0 +1,20 @@
+name: testing
+run-name: test Actions
+on:
+  workflow_dispatch:
+  schedule:
+   - cron: '0 0 * * *'
+  pull_request:
+    branches:
+      - main
+jobs:
+  run-all-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3.1.4
+        with:
+          python-version: '3.8'
+      - run: pip install pytest playwright pytest-playwright nicegui>=1.4.23 
+      - run: playwright install
+      - run: pytest tests/
