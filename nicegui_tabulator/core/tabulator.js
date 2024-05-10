@@ -1,4 +1,5 @@
 import { loadResource } from "../../static/utils/resources.js";
+import { convertDynamicProperties } from "../../static/utils/dynamic_properties.js";
 
 
 const eventArgsExtractor = new Map([
@@ -57,7 +58,7 @@ export default {
       loadResource(window.path_prefix + `${this.resource_path}/tabulator.min.css`),
     ]);
 
-
+    convertDynamicProperties(this.options, true);
     this.table = new Tabulator(this.$el, this.options);
 
   },
@@ -77,5 +78,22 @@ export default {
       }
       return runMethod(this.table, name, args);
     },
+
+    setColumns(columns) {
+      convertDynamicProperties(columns, true);
+      this.table.setColumns(columns);
+    },
+
+    updateColumnDefinition(field, definition) {
+      convertDynamicProperties(definition, true);
+      this.table.updateColumnDefinition(field, definition);
+    },
+
+    updateDefinition(definition) {
+      convertDynamicProperties(definition, true);
+      this.table.updateDefinition(definition);
+    },
+
+
   },
 };
