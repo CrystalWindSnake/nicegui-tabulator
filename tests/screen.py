@@ -59,6 +59,8 @@ class BrowserManager:
             timeout=5000,
             wait_until="domcontentloaded",
         )
+
+        self._page.wait_for_timeout(600)
         return self._page
 
     def close(self):
