@@ -45,7 +45,11 @@ class BrowserManager:
 
     def open(self, path: str):
         # self._page.wait_for_selector("body", timeout=10000)
-        self._page.goto(f"http://localhost:{PORT}{path}")
+        self._page.goto(
+            f"http://localhost:{PORT}{path}",
+            timeout=5000,
+            wait_until="domcontentloaded",
+        )
         return self._page
 
     def close(self):
