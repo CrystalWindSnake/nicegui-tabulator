@@ -25,8 +25,6 @@ class ServerManager:
 
     def stop_server(self) -> None:
         """Stop the webserver."""
-        # self.close()
-        # self.caplog.clear()
         self.browser.close()
         Server.instance.should_exit = True
 
@@ -50,7 +48,8 @@ class BrowserManager:
 
     def open(self, path: str):
         # self._page.wait_for_selector("body", timeout=10000)
-        # 启动成功
+
+        # wait for server to be ready
         is_connected = self.connected.wait(5)
         if not is_connected:
             raise TimeoutError("Failed to connect to server")
