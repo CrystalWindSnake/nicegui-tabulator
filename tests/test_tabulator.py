@@ -189,3 +189,40 @@ def test_manipulate_columns(browser: BrowserManager, page_path: str):
     expect(table.locator(".tabulator-headers .tabulator-col").nth(1)).to_contain_text(
         "Age"
     )
+
+
+def test_dynamic_configs(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        tabledata = [
+            {"id": 1, "name": "Oli Bob", "age": "12", "color": "red", "dob": ""}
+        ]
+
+        table_config = {
+            "height": 205,
+            "data": tabledata,
+            "columns": [
+                {
+                    "title": "Name",
+                    "field": "name",
+                    "width": 150,
+                    ":cellClick": 'function(e, cell){emitEvent("cellClick","name")}',
+                },
+                {"title": "Age", "field": "age", "hozAlign": "left"},
+            ],
+        }
+
+        ui.on("cellClick", lambda e: lbl_cell_click.set_text(e.args))
+
+        tabulator(table_config).classes("target")
+
+        lbl_cell_click = ui.label().classes("cell-click-label")
+
+    page = browser.open(page_path)
+
+    table = page.locator(".target")
+    lbl_cell_click = page.locator(".cell-click-label")
+
+    table.locator(".tabulator-row .tabulator-cell").first.click()
+
+    expect(lbl_cell_click).to_contain_text("name")
