@@ -92,7 +92,7 @@ def test_base(browser: BrowserManager, page_path: str):
         ui.button("sort", on_click=on_sort).classes("sort-button")
 
     page = browser.open(page_path)
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(600)
 
     table = page.locator(".target")
     lbl_row_click = page.locator(".row-click-label")
