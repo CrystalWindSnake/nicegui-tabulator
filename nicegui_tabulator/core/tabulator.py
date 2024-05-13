@@ -6,6 +6,11 @@ from nicegui import ui, Client as ng_client
 from nicegui.awaitable_response import AwaitableResponse
 from .events import TabulatorEventArguments
 
+try:
+    import pandas as pd
+except ImportError:
+    pass
+
 
 class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.min.js"]):
     def __init__(
@@ -146,6 +151,13 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
     def update(self) -> None:
         super().update()
         self.run_method("update_table")
+
+    @classmethod
+    def from_pandas(
+        cls,
+        df: "pd.DataFrame",
+    ):
+        pass
 
 
 class DeferredTask:
