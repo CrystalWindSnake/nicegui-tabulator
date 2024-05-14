@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta, timezone
 from nicegui import ui
 from .screen import BrowserManager
 from playwright.sync_api import expect, Locator
 from nicegui_tabulator import tabulator
+import pandas as pd
 
 
 def get_table_data(table: Locator):
@@ -226,3 +228,50 @@ def test_dynamic_configs(browser: BrowserManager, page_path: str):
     table.locator(".tabulator-row .tabulator-cell").first.click()
 
     expect(lbl_cell_click).to_contain_text("name")
+
+
+def test_from_pandas(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        df = pd.DataFrame(
+            {
+                "name": ["Alice", "Bob", "Charlie"],
+                "age": [25, 30, 35],
+                "color": ["blue", "red", "green"],
+                "dob": [None, "2021-01-01", "2021-02-02"],
+            }
+        )
+
+        tabulator.from_pandas(df).classes("target")
+
+    page = browser.open(page_path)
+
+    table = page.locator(".target")
+    data = get_table_data(table)
+
+    assert data[0] == ["Alice", "25", "blue", "\xa0"]
+
+
+def test_problematic_datatypes(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        df = pd.DataFrame(
+            {
+                "Datetime_col": [datetime(2020, 1, 1)],
+                "Datetime_col_tz": [datetime(2020, 1, 1, tzinfo=timezone.utc)],
+                "Timedelta_col": [timedelta(days=5)],
+                "Complex_col": [1 + 2j],
+                "Period_col": pd.Series([pd.Period("2021-01")]),
+            }
+        )
+
+        tabulator.from_pandas(df)
+
+    page = browser.open(page_path)
+
+    body_expect = expect(page.locator("body"))
+    body_expect.to_contain_text("Datetime_col")
+    body_expect.to_contain_text("Datetime_col_tz")
+    body_expect.to_contain_text("Timedelta_col")
+    body_expect.to_contain_text("Complex_col")
+    body_expect.to_contain_text("Period_col")
