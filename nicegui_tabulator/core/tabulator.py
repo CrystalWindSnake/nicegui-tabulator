@@ -157,7 +157,27 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         cls,
         df: "pd.DataFrame",
     ):
-        pass
+        def is_special_dtype(dtype):
+            return (
+                pd.api.types.is_datetime64_any_dtype(dtype)
+                or pd.api.types.is_timedelta64_dtype(dtype)
+                or pd.api.types.is_complex_dtype(dtype)
+                or isinstance(dtype, pd.PeriodDtype)
+            )
+
+        special_cols = df.columns[df.dtypes.apply(is_special_dtype)]
+        if not special_cols.empty:
+            df = df.copy()
+            df[special_cols] = df[special_cols].astype(str)
+
+        if isinstance(df.columns, pd.MultiIndex):
+            raise ValueError(
+                "MultiIndex columns are not supported. "
+                "You can convert them to strings using something like "
+                '`df.columns = ["_".join(col) for col in df.columns.values]`.'
+            )
+
+        return cls(options={"data": df.to_dict(orient="records"), "autoColumns": True})
 
 
 class DeferredTask:
