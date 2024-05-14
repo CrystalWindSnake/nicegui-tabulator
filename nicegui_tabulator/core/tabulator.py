@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, ClassVar, Dict, List, Optional
 from nicegui.element import Element
 from nicegui.events import handle_event
 from nicegui import ui, Client as ng_client
@@ -17,6 +17,11 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         self,
         options: Dict,
     ) -> None:
+        """Create a new tabulator table.
+
+        Args:
+            options (Dict): The options for the tabulator table.
+        """
         super().__init__()
         self.__deferred_task = DeferredTask()
         self._event_listener_map: Dict[str, Callable[..., None]] = {}
@@ -157,6 +162,16 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         cls,
         df: "pd.DataFrame",
     ):
+        """Create a table from a Pandas DataFrame.
+
+        Note:
+        If the DataFrame contains non-serializable columns of type `datetime64[ns]`, `timedelta64[ns]`, `complex128` or `period[M]`,
+        they will be converted to strings.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to create the table from.
+        """
+
         def is_special_dtype(dtype):
             return (
                 pd.api.types.is_datetime64_any_dtype(dtype)
@@ -177,7 +192,12 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 '`df.columns = ["_".join(col) for col in df.columns.values]`.'
             )
 
-        return cls(options={"data": df.to_dict(orient="records"), "autoColumns": True})
+        options = {
+            "data": df.to_dict(orient="records"),
+            "columns": [{"title": col, "field": col} for col in df.columns],
+        }
+
+        return cls(options)
 
 
 class DeferredTask:
