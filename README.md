@@ -73,3 +73,36 @@ def on_sort():
 ui.button("sort", on_click=on_sort)
 
 ```
+
+---
+
+create from pandas dataframe:
+
+```python
+from nicegui_tabulator import tabulator
+import pandas as pd
+
+
+df = pd.DataFrame(
+    {
+        "name": ["Alice", "Bob", "Charlie"],
+        "age": [25, 30, 35],
+        "color": ["blue", "red", "green"],
+        "dob": [None, "2021-01-01", "2021-02-02"],
+    }
+)
+
+
+tabulator.from_pandas(df)
+```
+
+---
+
+You can update column configurations immediately after creating the table.
+
+
+```python
+tabulator.from_pandas(df).update_column_definition(
+    "age", {"hozAlign": "left", "formatter": "progress"}
+)
+```
