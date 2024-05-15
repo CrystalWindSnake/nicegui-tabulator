@@ -14,6 +14,8 @@ class DeferredTask:
             for task in self._tasks:
                 task()
 
+            self._tasks.clear()
+
             # Avoid events becoming ineffective due to page refresh when sharing the client.
             if not client.shared:
                 client.connect_handlers.remove(on_client_connect)  # type: ignore
