@@ -2,9 +2,10 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional
 from nicegui.element import Element
 from nicegui.events import handle_event
-from nicegui import ui, Client as ng_client
 from nicegui.awaitable_response import AwaitableResponse
 from .events import TabulatorEventArguments
+
+from .utils import DeferredTask
 
 try:
     import pandas as pd
@@ -198,28 +199,3 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         }
 
         return cls(options)
-
-
-class DeferredTask:
-    def __init__(self):
-        self._tasks = []
-
-        async def on_client_connect(
-            client: ng_client,
-        ):
-            await client.connected()
-
-            for task in self._tasks:
-                task()
-
-            # Avoid events becoming ineffective due to page refresh when sharing the client.
-            if not client.shared:
-                client.connect_handlers.remove(on_client_connect)  # type: ignore
-
-        ui.context.client.on_connect(on_client_connect)
-
-    def register(self, task: Callable[..., None]):
-        if ui.context.client.has_socket_connection:
-            task()
-        else:
-            self._tasks.append(task)
