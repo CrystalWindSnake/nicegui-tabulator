@@ -107,7 +107,10 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         ```
 
         """
-        self.run_method("setColumns", columns)
+
+        @self.__deferred_task.register
+        def _():
+            self.run_method("setColumns", columns)
 
     def update_column_definition(self, field: str, definition: Dict) -> None:
         """
@@ -125,7 +128,10 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         table.update_column_definition("name", {'title':"Updated Title"})
         ```
         """
-        self.run_method("updateColumnDefinition", field, definition)
+
+        @self.__deferred_task.register
+        def _():
+            self.run_method("updateColumnDefinition", field, definition)
 
     def add_column(
         self,
@@ -152,7 +158,10 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         ```
 
         """
-        self.run_table_method("addColumn", definition, before, position)
+
+        @self.__deferred_task.register
+        def _():
+            self.run_table_method("addColumn", definition, before, position)
 
     def update(self) -> None:
         super().update()

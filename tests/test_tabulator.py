@@ -193,6 +193,34 @@ def test_manipulate_columns(browser: BrowserManager, page_path: str):
     )
 
 
+def test_columns_method_immediately(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        tabledata = [
+            {"id": 1, "name": "Alice", "age": "12"},
+        ]
+
+        table_config = {
+            "height": 205,
+            "data": tabledata,
+            "columns": [
+                {"title": "Name", "field": "name"},
+                {"title": "Age", "field": "age"},
+            ],
+        }
+
+        tabulator(table_config).classes("target").update_column_definition(
+            "name",
+            {
+                "title": "new name",
+            },
+        )
+
+    page = browser.open(page_path)
+    body_expect = expect(page.locator("body"))
+    body_expect.to_contain_text("new name")
+
+
 def test_dynamic_configs(browser: BrowserManager, page_path: str):
     @ui.page(page_path)
     def _():
