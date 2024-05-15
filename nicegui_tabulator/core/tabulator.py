@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Callable, ClassVar, Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 from nicegui.element import Element
 from nicegui.events import handle_event
 from nicegui import ui, Client as ng_client
