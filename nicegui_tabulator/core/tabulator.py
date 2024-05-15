@@ -6,12 +6,22 @@ from nicegui import ui, Client as ng_client
 from nicegui.awaitable_response import AwaitableResponse
 from .events import TabulatorEventArguments
 
+try:
+    import pandas as pd
+except ImportError:
+    pass
+
 
 class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.min.js"]):
     def __init__(
         self,
         options: Dict,
     ) -> None:
+        """Create a new tabulator table.
+
+        Args:
+            options (Dict): The options for the tabulator table.
+        """
         super().__init__()
         self.__deferred_task = DeferredTask()
         self._event_listener_map: Dict[str, Callable[..., None]] = {}
@@ -146,6 +156,48 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
     def update(self) -> None:
         super().update()
         self.run_method("update_table")
+
+    @classmethod
+    def from_pandas(
+        cls,
+        df: "pd.DataFrame",
+    ):
+        """Create a table from a Pandas DataFrame.
+
+        Note:
+        If the DataFrame contains non-serializable columns of type `datetime64[ns]`, `timedelta64[ns]`, `complex128` or `period[M]`,
+        they will be converted to strings.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to create the table from.
+        """
+
+        def is_special_dtype(dtype):
+            return (
+                pd.api.types.is_datetime64_any_dtype(dtype)
+                or pd.api.types.is_timedelta64_dtype(dtype)
+                or pd.api.types.is_complex_dtype(dtype)
+                or isinstance(dtype, pd.PeriodDtype)
+            )
+
+        special_cols = df.columns[df.dtypes.apply(is_special_dtype)]
+        if not special_cols.empty:
+            df = df.copy()
+            df[special_cols] = df[special_cols].astype(str)
+
+        if isinstance(df.columns, pd.MultiIndex):
+            raise ValueError(
+                "MultiIndex columns are not supported. "
+                "You can convert them to strings using something like "
+                '`df.columns = ["_".join(col) for col in df.columns.values]`.'
+            )
+
+        options = {
+            "data": df.to_dict(orient="records"),
+            "columns": [{"title": col, "field": col} for col in df.columns],
+        }
+
+        return cls(options)
 
 
 class DeferredTask:

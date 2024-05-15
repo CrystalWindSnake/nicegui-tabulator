@@ -14,6 +14,7 @@ nicegui = "^1.4.24"
 pytest = "^8.2.0"
 playwright = "^1.43.0"
 pytest-playwright = "^0.5.0"
+pandas = "^2.0.0"
 
 [build-system]
 requires = ["poetry-core"]
