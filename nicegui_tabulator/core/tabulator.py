@@ -163,9 +163,9 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         def _():
             self.run_table_method("addColumn", definition, before, position)
 
-    def update(self) -> None:
-        super().update()
-        self.run_method("update_table")
+    # def update(self) -> None:
+    #     super().update()
+    # self.run_method("update_table")
 
     @classmethod
     def from_pandas(
