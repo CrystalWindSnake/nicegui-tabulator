@@ -78,9 +78,11 @@ def test_base(browser: BrowserManager, page_path: str):
             .on_event(
                 "rowClick", lambda e: lbl_row_click.set_text(str(e.args["row"]["name"]))
             )
+            .on_event("tableBuilt", lambda e: lbl_table_built.set_text("Table Built"))
         )
 
         lbl_row_click = ui.label("").classes("row-click-label")
+        lbl_table_built = ui.label("").classes("table-built-label")
 
         def on_sort():
             table.run_table_method(
@@ -94,12 +96,13 @@ def test_base(browser: BrowserManager, page_path: str):
         ui.button("sort", on_click=on_sort).classes("sort-button")
 
     page = browser.open(page_path)
-    page.wait_for_timeout(600)
 
     table = page.locator(".target")
     lbl_row_click = page.locator(".row-click-label")
+    lbl_table_built = page.locator(".table-built-label")
 
     expect(table).to_be_visible()
+    expect(lbl_table_built).to_contain_text("Table Built")
 
     data = get_table_data(table)
 
