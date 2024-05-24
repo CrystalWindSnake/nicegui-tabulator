@@ -1,11 +1,9 @@
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 from nicegui.element import Element
-from nicegui.events import handle_event
 from nicegui.awaitable_response import AwaitableResponse
-from .events import TabulatorEventArguments
-
 from .utils import DeferredTask
+from warnings import warn
 
 try:
     import pandas as pd
@@ -25,22 +23,9 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         """
         super().__init__()
         self.__deferred_task = DeferredTask()
-        self._event_listener_map: Dict[str, Callable[..., None]] = {}
 
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
-
-        def on_table_event(e):
-            event_name = e.args["eventName"]
-
-            event_args = TabulatorEventArguments(
-                sender=self, client=self.client, args=e.args["args"]
-            )
-
-            if event_name in self._event_listener_map:
-                handle_event(self._event_listener_map[event_name], event_args)
-
-        self.on("table-event", on_table_event)
 
     def on_event(
         self,
@@ -56,10 +41,18 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         """
 
+        if event.endswith("tableBuilding"):
+            warn("The 'tableBuilding' event cannot be triggered.")
+            return self
+
+        if not event.startswith("table:"):
+            event = f"table:{event}"
+
         @self.__deferred_task.register
         def _():
-            self._event_listener_map[event] = callback
             self.run_method("onEvent", event)
+
+        self.on(event, callback)
 
         return self
 
@@ -162,10 +155,6 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         @self.__deferred_task.register
         def _():
             self.run_table_method("addColumn", definition, before, position)
-
-    # def update(self) -> None:
-    #     super().update()
-    # self.run_method("update_table")
 
     @classmethod
     def from_pandas(

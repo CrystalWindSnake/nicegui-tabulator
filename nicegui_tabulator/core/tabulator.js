@@ -2,6 +2,11 @@ import { loadResource } from "../../static/utils/resources.js";
 import { convertDynamicProperties } from "../../static/utils/dynamic_properties.js";
 
 
+const completedEvents = new Set([
+  'tableBuilding',
+  'tableBuilt',
+]);
+
 const eventArgsExtractor = new Map([
   ['dataFiltering', filters => ({ filters })],
   ['dataFiltered', (filters, rows) => ({ filters, rows: rows.map(row => row.getData()) })],
@@ -60,14 +65,21 @@ export default {
 
     convertDynamicProperties(this.options, true);
     this.table = new Tabulator(this.$el, this.options);
-
   },
 
   methods: {
     onEvent(eventName) {
-      this.table.on(eventName, (...args) => {
+      const orgEventName = eventName.replace(/^table:/, '');
+
+      // These events have already been completed at this moment
+      if (completedEvents.has(orgEventName)) {
+        this.$emit(eventName);
+        return;
+      }
+
+      this.table.on(orgEventName, (...args) => {
         const eventArgs = extractEventArg(eventName, args);
-        this.$emit('table-event', { eventName, args: eventArgs });
+        this.$emit(eventName, eventArgs);
 
         if (eventName === 'rowContext' || eventName === 'groupContext') {
           args[0].preventDefault();
