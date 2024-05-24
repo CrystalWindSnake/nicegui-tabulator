@@ -2,8 +2,11 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional
 from nicegui.element import Element
 from nicegui.awaitable_response import AwaitableResponse
-from .utils import DeferredTask
 from warnings import warn
+from collections import defaultdict
+from .utils import DeferredTask
+from .teleport import teleport
+from .types import CellSlotProps
 
 try:
     import pandas as pd
@@ -26,6 +29,26 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
+
+        self._cell_slot_map: defaultdict[str, List[Callable]] = defaultdict(list)
+
+        def on_table_built(e):
+            options: Dict = self._props["options"]
+            columns: List[Dict] = options.get("columns", [])
+            field_map = {col.get("field"): col for col in columns}
+
+            # Ensure that the column configuration information exists and set the correct formatter
+
+            for field, fns in self._cell_slot_map.items():
+                if field not in field_map:
+                    continue
+
+                for fn in fns:
+                    fn()
+
+            self.run_table_method("redraw")
+
+        self.on_event("tableBuilt", on_table_built)
 
     def on_event(
         self,
@@ -197,3 +220,46 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         }
 
         return cls(options)
+
+    def cell_slot(
+        self,
+        field: str,
+    ):
+        id = f"c{self.id}"
+
+        def wrapper(build_fn: Callable[[CellSlotProps], None]):
+            def fn():
+                options = self._props["options"]
+                data = options.get("data", [])
+                # columns = options.get("columns", [])
+
+                if not data:
+                    return
+
+                for idx, row in enumerate(data):
+                    class_name = f"ng-cell-slot-{field}-{idx + 1}"
+                    with teleport(f"#{id} .{class_name}"):
+                        cell_slot = CellSlotProps(
+                            field=field, value=row[field], row=row, row_number=idx + 1
+                        )
+                        build_fn(cell_slot)
+
+            self.update_column_definition(
+                field,
+                {
+                    ":formatter": r"""
+        function(cell, formatterParams, onRendered){
+            onRendered(function(){
+                const row = cell.getRow();
+                const field = cell.getField();
+                const index = row.getIndex();
+                const target = cell.getElement();
+                target.classList.add(`ng-cell-slot-${field}-${index}`);
+            });
+        }
+        """
+                },
+            )
+            self._cell_slot_map[field].append(fn)
+
+        return wrapper
