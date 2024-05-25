@@ -370,6 +370,47 @@ def test_cell_slot(browser: BrowserManager, page_path: str):
     )
 
 
+def test_cell_slot_should_correct_value_after_update(
+    browser: BrowserManager, page_path: str
+):
+    @ui.page(page_path)
+    def _():
+        tabledata = [
+            {"id": 1, "name": "bar", "age": "12"},
+            {"id": 2, "name": "foo", "age": "1"},
+        ]
+
+        table_config = {
+            "data": tabledata,
+            "columns": [
+                {"title": "Name", "field": "name"},
+                {"title": "Age", "field": "age"},
+            ],
+        }
+
+        table = tabulator(table_config).classes("target")
+
+        @table.add_cell_slot("name")
+        def _(props: CellSlotProps):
+            ui.input(value=props.value, on_change=lambda e: props.update_value(e.value))
+
+        def print_table_data():
+            table.update_data([{"id": 1, "name": ""}])
+
+        ui.button("print table data", on_click=print_table_data)
+        ui.button("redraw table", on_click=lambda: table.run_table_method("redraw"))
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    first_name_input = table_locator.get_by_role("textbox").first
+
+    first_name_input.fill("new bar")
+    page.get_by_role("button").filter(has_text="print table data").click()
+    page.get_by_role("button").filter(has_text="redraw table").click()
+
+    expect(first_name_input).to_have_value("new bar")
+
+
 def test_update_data(browser: BrowserManager, page_path: str):
     @ui.page(page_path)
     def _():
