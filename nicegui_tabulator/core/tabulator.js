@@ -104,5 +104,10 @@ export default {
       this.table.updateColumnDefinition(field, definition);
     },
 
+    updateCellSlot(field, rowNumber) {
+      this.$emit('updateCellSlot', { field, rowNumber })
+    },
+
+
   },
 };

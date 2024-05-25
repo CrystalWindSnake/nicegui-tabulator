@@ -1,9 +1,11 @@
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 from nicegui.element import Element
 from nicegui.awaitable_response import AwaitableResponse
-from .utils import DeferredTask
 from warnings import warn
+from .utils import DeferredTask
+from .teleport import teleport
+from .types import CellSlotProps
 
 try:
     import pandas as pd
@@ -26,6 +28,35 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
+
+        self._cell_slot_map: Dict[str, Callable] = {}
+        self._teleport_slots_cache: Dict[Tuple[str, int], teleport] = {}
+
+        def on_update_cell_slot(e):
+            field = e.args["field"]
+            row_number = e.args["rowNumber"]
+            key = (field, row_number)
+
+            if field not in self._cell_slot_map:
+                return
+
+            if key in self._teleport_slots_cache:
+                tp = self._teleport_slots_cache[key]
+                tp.forceUpdate()
+            else:
+                fn = self._cell_slot_map[field]
+                tp = fn(row_number)
+                if tp:
+                    self._teleport_slots_cache[key] = tp
+
+            self.run_table_method("redraw")
+
+        self.on("updateCellSlot", on_update_cell_slot)
+
+    def delete(self) -> None:
+        for tp in self._teleport_slots_cache.values():
+            tp.delete()
+        return super().delete()
 
     def on_event(
         self,
@@ -197,3 +228,76 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         }
 
         return cls(options)
+
+    def add_cell_slot(
+        self,
+        field: str,
+    ):
+        """
+        Add a cell slot to the table.
+
+        @see https://github.com/CrystalWindSnake/nicegui-tabulator?tab=readme-ov-file#cell-slots
+
+
+        Args:
+            field (str): The field name of the column you want to add a cell slot to.
+
+
+        ## Example Usage
+
+        ```python
+        from nicegui import ui
+        from nicegui_tabulator import tabulator,CellSlotProps
+
+        table = tabulator({...})
+
+        @table.add_cell_slot("name")
+        def name_cell(props: CellSlotProps):
+            ui.input(value=props.value, placeholder="Enter name")
+
+        """
+        id = f"c{self.id}"
+
+        def wrapper(build_fn: Callable[[CellSlotProps], None]):
+            def fn(row_number: int):
+                options = self._props["options"]
+                data = options.get("data", [])
+                if not data:
+                    return
+
+                row = data[row_number - 1]
+
+                class_name = f"ng-cell-slot-{field}-{row_number}"
+                with teleport(f"#{id} .{class_name}") as tp:
+                    cell_slot = CellSlotProps(
+                        field=field,
+                        value=row[field],
+                        row=row,
+                        row_number=row_number,
+                        table=self,
+                    )
+                    build_fn(cell_slot)
+
+                return tp
+
+            self.update_column_definition(
+                field,
+                {
+                    ":formatter": rf"""
+        function(cell, formatterParams, onRendered){{
+            onRendered(function(){{
+                const row = cell.getRow();
+                const field = cell.getField();
+                const rowNumber = row.getIndex();
+                const target = cell.getElement();
+                target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowNumber}} fit"></div>`
+                const table = getElement({self.id});
+                runMethod(table, 'updateCellSlot',[field,rowNumber]);
+            }});
+        }}
+        """
+                },
+            )
+            self._cell_slot_map[field] = fn
+
+        return wrapper
