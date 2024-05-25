@@ -228,6 +228,29 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         self,
         field: str,
     ):
+        """
+        Add a cell slot to the table.
+
+        @see https://github.com/CrystalWindSnake/nicegui-tabulator?tab=readme-ov-file#cell-slots
+
+
+        Args:
+            field (str): The field name of the column you want to add a cell slot to.
+
+
+        ## Example Usage
+
+        ```python
+        from nicegui import ui
+        from nicegui_tabulator import tabulator,CellSlotProps
+
+        table = tabulator({...})
+
+        @table.add_cell_slot("name")
+        def name_cell(props: CellSlotProps):
+            ui.input(value=props.value, placeholder="Enter name")
+
+        """
         id = f"c{self.id}"
 
         def wrapper(build_fn: Callable[[CellSlotProps], None]):
