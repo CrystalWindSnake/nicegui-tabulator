@@ -301,3 +301,84 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
             self._cell_slot_map[field] = fn
 
         return wrapper
+
+    def set_data(self, data: List[Dict]):
+        """set the data of the table.
+
+        @see https://tabulator.info/docs/6.2/data#array
+
+        Args:
+            data (List[Dict]): The data to set for the table.
+
+
+        """
+        self.run_table_method("setData", data)
+        return self
+
+    def replace_data(self, data: List[Dict]):
+        """replace the data of the table.
+
+        @see https://tabulator.info/docs/6.2/update#alter-replace
+
+        Args:
+            data (List[Dict]): The data to replace the current data with.
+
+
+        """
+        self.run_table_method("replaceData", data)
+        return self
+
+    def update_data(self, data: List[Dict]):
+        """update the data of the table.
+
+        @see https://tabulator.info/docs/6.2/update#alter-update
+
+        Args:
+            data (List[Dict]): The data to update the current data with.
+
+
+        """
+
+        self.run_table_method("updateData", data)
+        return self
+
+    def add_data(
+        self,
+        data: List[Dict],
+        at_top: Optional[bool] = None,
+        index: Optional[int] = None,
+    ):
+        """add data to the table.
+
+        @see https://tabulator.info/docs/6.2/update#alter-add
+
+        Args:
+            data (List[Dict]): The data to add to the current data.
+            at_top (Optional[bool], optional): determines whether the data is added to the top or bottom of the table. A value of true will add the data to the top of the table, a value of false will add the data to the bottom of the table. If the parameter is not set the data will be placed according to the addRowPos global option.
+            index (Optional[int], optional): position the new rows next to the specified row (above or below based on the value of the second argument). This argument will take any of the standard row component look up options
+
+        """
+        self.run_table_method("addData", data, at_top, index)
+        return self
+
+    def update_or_add_data(self, data: List[Dict]):
+        """update or add data to the table.
+        If the data you are passing to the table contains a mix of existing rows to be updated and new rows to be added then you can call the updateOrAddData function. This will check each row object provided and update the existing row if available, or else create a new row with the data.
+
+        @see https://tabulator.info/docs/6.2/update#alter-add
+
+        Args:
+            data (List[Dict]): The data to update or add to the current data.
+
+        """
+        self.run_table_method("updateOrAddData", data)
+        return self
+
+    def clear_data(self):
+        """clear the data of the table.
+
+        @see https://tabulator.info/docs/6.2/update#alter-empty
+
+        """
+        self.run_table_method("clearData")
+        return self

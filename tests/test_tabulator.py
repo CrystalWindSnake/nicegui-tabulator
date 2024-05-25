@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta, timezone
+import re
+from typing import Dict, List
 from nicegui import ui
 from .screen import BrowserManager
 from playwright.sync_api import expect, Locator
@@ -9,6 +11,15 @@ import pandas as pd
 def get_table_data(table: Locator):
     rows = table.locator(".tabulator-row").all()
     return [row.locator(".tabulator-cell").all_text_contents() for row in rows]
+
+
+def check_table_rows(table: Locator, expected_data: List[List]):
+    rows = table.locator(".tabulator-row")
+    expect(rows).to_have_count(len(expected_data))
+
+    for i, data_row in enumerate(expected_data):
+        row = rows.nth(i)
+        expect(row).to_contain_text("".join(data_row))
 
 
 def test_base(browser: BrowserManager, page_path: str):
@@ -356,4 +367,116 @@ def test_cell_slot(browser: BrowserManager, page_path: str):
     page.get_by_role("button").filter(has_text="update options to label").click()
     expect(page.locator(".table-options")).to_contain_text(
         """{'id': 1, 'name': 'new bar', 'age': '12'}"""
+    )
+
+
+def test_update_data(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        tabledata = [
+            {"id": 1, "name": "bar", "age": "12"},
+            {"id": 2, "name": "foo", "age": "1"},
+        ]
+
+        table_config = {
+            "data": tabledata,
+            "columns": [
+                {"title": "Name", "field": "name"},
+                {"title": "Age", "field": "age"},
+            ],
+        }
+
+        table = tabulator(table_config).classes("target")
+
+        ui.button(
+            "set data",
+            on_click=lambda: table.set_data(
+                [{"id": 1, "name": "bar-set-data", "age": "12"}]
+            ),
+        )
+
+        ui.button(
+            "replace data",
+            on_click=lambda: table.replace_data(
+                [{"id": 1, "name": "bar-replace-data", "age": "66"}]
+            ),
+        )
+
+        ui.button(
+            "update data",
+            on_click=lambda: table.update_data(
+                [{"id": 1, "name": "bar-update-data", "age": "12"}]
+            ),
+        )
+
+        ui.button(
+            "adding data",
+            on_click=lambda: table.add_data(
+                [{"id": 2, "name": "bar-add-data", "age": "99"}]
+            ),
+        )
+
+        ui.button(
+            "adding data at top",
+            on_click=lambda: table.add_data(
+                [{"id": 3, "name": "bar-add-data-top", "age": "99"}], True
+            ),
+        )
+
+        ui.button(
+            "adding data at top with index",
+            on_click=lambda: table.add_data(
+                [{"id": 4, "name": "bar-add-data-top-with-index", "age": "99"}], True, 2
+            ),
+        )
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    # rows_locator = table_locator.locator(".tabulator-row")
+    table_expect = expect(table_locator)
+
+    # set data
+    page.get_by_role("button").filter(has_text="set data").click()
+    # expect(table_rows_locator).to_have_text("".join(["bar-set-data", "12"]))
+    check_table_rows(table_locator, [["bar-set-data", "12"]])
+
+    # replace data
+    page.get_by_role("button").filter(has_text="replace data").click()
+    # expect(table_rows_locator).to_have_text("".join(["bar-replace-data", "66"]))
+    check_table_rows(table_locator, [["bar-replace-data", "66"]])
+
+    # update data
+    page.get_by_role("button").filter(has_text="update data").click()
+    # expect(table_rows_locator).to_have_text("".join(["bar-update-data", "12"]))
+    check_table_rows(table_locator, [["bar-update-data", "12"]])
+
+    # adding data
+    page.get_by_role("button").filter(has_text=re.compile("^adding data$")).click()
+    check_table_rows(table_locator, [["bar-update-data", "12"], ["bar-add-data", "99"]])
+
+    # adding data at top
+    page.get_by_role("button").filter(
+        has_text=re.compile("^adding data at top$")
+    ).click()
+    check_table_rows(
+        table_locator,
+        [
+            ["bar-add-data-top", "99"],
+            ["bar-update-data", "12"],
+            ["bar-add-data", "99"],
+        ],
+    )
+
+    # adding data at top with index
+    page.get_by_role("button").filter(
+        has_text=re.compile("^adding data at top with index$")
+    ).click()
+    check_table_rows(
+        table_locator,
+        [
+            ["bar-add-data-top", "99"],
+            ["bar-update-data", "12"],
+            ["bar-add-data-top-with-index", "99"],
+            ["bar-add-data", "99"],
+        ],
     )
