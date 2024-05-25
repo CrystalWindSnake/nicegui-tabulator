@@ -1,30 +1,30 @@
 ## NiceGUI Tabulator
 
-This is a Python package that provides a simple way to create tables using the [Tabulator](https://github.com/olifolkerd/tabulator) library. It is built on top of the [NiceGUI](https://github.com/zauberzeug/nicegui) library.
+这是一个Python包，它通过 [Tabulator](https://github.com/olifolkerd/tabulator) 库提供了一种简单的方式来创建表格。该包构建于 [NiceGUI](https://github.com/zauberzeug/nicegui) 库之上。
+
 
 
 <div align="center">
 
-English| [简体中文](./README.zh-CN.md)
+简体中文| [English](./README.md)
 
 </div>
 
-## Features
+## 功能
 
-- [x] Easily utilize various events and methods from the Tabulator library.
-- [x] Cell Slots: Place any NiceGUI component within a cell and access all its functionalities without writing string templates. [Example](#cell-slot)
-- [x] Built-in support for creating tables from pandas data. [Example](#from_pandas)
-- [ ] Built-in support for downloading in formats such as Excel, PDF, etc.
-- [ ] Row Slots
+- [x] 轻松使用 Tabulator 库各种事件、方法
+- [x] 单元格插槽：可以在单元格中放入任意 nicegui 组件并获得所有功能，而无须编写字符串模板。[示例](#cell-slot)
+- [x] 内置支持从 pandas 数据创建表格。[示例](#from_pandas)
+- [ ] 内置支持 excel、pdf 等格式下载
+- [ ] 行插槽
 
-
-## Installation
+## 安装
 
 ```
 pip install nicegui-tabulator
 ```
 
-## Usage
+## 使用
 
 ```python
 from nicegui_tabulator import tabulator
@@ -94,7 +94,7 @@ ui.button("sort", on_click=on_sort)
 ## API
 
 ### from_pandas
-create from pandas dataframe:
+从 pandas 数据创建表格。
 
 ```python
 from nicegui_tabulator import tabulator
@@ -116,8 +116,7 @@ tabulator.from_pandas(df)
 
 ---
 
-You can update column configurations immediately after creating the table.
-
+你可以在创建表格之后立即更新列配置。
 
 ```python
 tabulator.from_pandas(df).update_column_definition(
@@ -126,11 +125,9 @@ tabulator.from_pandas(df).update_column_definition(
 ```
 
 
----
+## cell-slot
 
-## Cell Slot
-
-Cell Slots allow you to place any NiceGUI component within a cell and access all its functionalities without writing string templates.
+单元格插槽允许你在单元格中放入任意 nicegui 组件并获得所有功能，而无须编写字符串模板。
 
 ```python
 from nicegui import ui
@@ -155,9 +152,8 @@ table = tabulator(table_config)
 
 @table.add_cell_slot("name")
 def _(props: CellSlotProps):
-    # This function is called when rendering the cell of the table, and it receives the properties of the cell,
-    # including the value of the cell, row index, column name, etc.
-    # props.update_value(new_value) can update the value of the cell (updates server-side only, the client needs to manually refresh `sync_client_data`).
+    # 当表格渲染单元格时，会调用这个函数，并传入单元格的属性，包括单元格的值、行索引、列名等信息。
+    # props.update_value(new_value) 可以更新单元格的值(只更新服务端，客户端需要手动刷新 `sync_client_data`)。
     ui.input(value=props.value, on_change=lambda e: props.update_value(e.value))
 
 
@@ -170,5 +166,10 @@ def print_table_data():
     table.sync_client_data()
     table.run_table_method("print", True)
 
+
 ui.button("print table data", on_click=print_table_data)
+
+
 ```
+
+
