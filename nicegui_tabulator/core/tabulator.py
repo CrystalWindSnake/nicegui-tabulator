@@ -382,3 +382,11 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         """
         self.run_table_method("clearData")
         return self
+
+    def sync_data_to_client(self):
+        """sync server data to the client.
+
+        @see https://github.com/CrystalWindSnake/nicegui-tabulator/tree/main?tab=readme-ov-file##cell-slot
+        """
+        self.set_data(self._props["options"]["data"])
+        return self
