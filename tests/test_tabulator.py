@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import re
-from typing import Dict, List
+from typing import List
 from nicegui import ui
 from .screen import BrowserManager
 from playwright.sync_api import expect, Locator
@@ -432,22 +432,17 @@ def test_update_data(browser: BrowserManager, page_path: str):
 
     page = browser.open(page_path)
     table_locator = page.locator(".target")
-    # rows_locator = table_locator.locator(".tabulator-row")
-    table_expect = expect(table_locator)
 
     # set data
     page.get_by_role("button").filter(has_text="set data").click()
-    # expect(table_rows_locator).to_have_text("".join(["bar-set-data", "12"]))
     check_table_rows(table_locator, [["bar-set-data", "12"]])
 
     # replace data
     page.get_by_role("button").filter(has_text="replace data").click()
-    # expect(table_rows_locator).to_have_text("".join(["bar-replace-data", "66"]))
     check_table_rows(table_locator, [["bar-replace-data", "66"]])
 
     # update data
     page.get_by_role("button").filter(has_text="update data").click()
-    # expect(table_rows_locator).to_have_text("".join(["bar-update-data", "12"]))
     check_table_rows(table_locator, [["bar-update-data", "12"]])
 
     # adding data
