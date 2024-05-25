@@ -157,7 +157,7 @@ table = tabulator(table_config)
 def _(props: CellSlotProps):
     # This function is called when rendering the cell of the table, and it receives the properties of the cell,
     # including the value of the cell, row index, column name, etc.
-    # props.update_value(new_value) can update the value of the cell (updates server-side only, the client needs to manually refresh `sync_client_data`).
+    # props.update_value(new_value) can update the value of the cell (updates server-side only, the client needs to manually refresh `sync_data_to_client`).
     ui.input(value=props.value, on_change=lambda e: props.update_value(e.value))
 
 
@@ -167,7 +167,7 @@ def _(props: CellSlotProps):
 
 
 def print_table_data():
-    table.sync_client_data()
+    table.sync_data_to_client()
     table.run_table_method("print", True)
 
 ui.button("print table data", on_click=print_table_data)

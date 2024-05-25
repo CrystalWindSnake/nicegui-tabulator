@@ -153,7 +153,7 @@ table = tabulator(table_config)
 @table.add_cell_slot("name")
 def _(props: CellSlotProps):
     # 当表格渲染单元格时，会调用这个函数，并传入单元格的属性，包括单元格的值、行索引、列名等信息。
-    # props.update_value(new_value) 可以更新单元格的值(只更新服务端，客户端需要手动刷新 `sync_client_data`)。
+    # props.update_value(new_value) 可以更新单元格的值(只更新服务端，客户端需要手动刷新 `sync_data_to_client`)。
     ui.input(value=props.value, on_change=lambda e: props.update_value(e.value))
 
 
@@ -163,7 +163,7 @@ def _(props: CellSlotProps):
 
 
 def print_table_data():
-    table.sync_client_data()
+    table.sync_data_to_client()
     table.run_table_method("print", True)
 
 
