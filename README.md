@@ -128,7 +128,7 @@ tabulator.from_pandas(df).update_column_definition(
 
 ---
 
-## Cell Slot
+### Cell Slot
 
 Cell Slots allow you to place any NiceGUI component within a cell and access all its functionalities without writing string templates.
 

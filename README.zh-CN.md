@@ -125,7 +125,7 @@ tabulator.from_pandas(df).update_column_definition(
 ```
 
 
-## cell-slot
+### cell-slot
 
 单元格插槽允许你在单元格中放入任意 nicegui 组件并获得所有功能，而无须编写字符串模板。
 
