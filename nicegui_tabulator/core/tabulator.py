@@ -41,13 +41,14 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 return
 
             if key in self._teleport_slots_cache:
+                # TODO:how reuse the teleport instead of creating a new one?
                 tp = self._teleport_slots_cache[key]
-                tp.forceUpdate()
-            else:
-                fn = self._cell_slot_map[field]
-                tp = fn(row_number)
-                if tp:
-                    self._teleport_slots_cache[key] = tp
+                tp.delete()
+
+            fn = self._cell_slot_map[field]
+            tp = fn(row_number)
+            if tp:
+                self._teleport_slots_cache[key] = tp
 
             self.run_table_method("redraw")
 
