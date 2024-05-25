@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from nicegui import ui
 from .screen import BrowserManager
 from playwright.sync_api import expect, Locator
-from nicegui_tabulator import tabulator
+from nicegui_tabulator import tabulator, CellSlotProps
 import pandas as pd
 
 
@@ -306,3 +306,54 @@ def test_problematic_datatypes(browser: BrowserManager, page_path: str):
     body_expect.to_contain_text("Timedelta_col")
     body_expect.to_contain_text("Complex_col")
     body_expect.to_contain_text("Period_col")
+
+
+def test_cell_slot(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        tabledata = [
+            {"id": 1, "name": "bar", "age": "12"},
+            {"id": 2, "name": "foo", "age": "1"},
+        ]
+
+        table_config = {
+            "data": tabledata,
+            "columns": [
+                {"title": "Name", "field": "name"},
+                {"title": "Age", "field": "age"},
+            ],
+        }
+
+        table = tabulator(table_config).classes("target")
+
+        @table.add_cell_slot("name")
+        def _(props: CellSlotProps):
+            ui.input(value=props.value, on_change=lambda e: props.update_value(e.value))
+
+        @table.add_cell_slot("age")
+        def _(props: CellSlotProps):
+            ui.number(value=props.value, min=0, max=100)
+
+        lbl_opts = ui.label("").classes("table-options")
+
+        def update_options_to_label():
+            lbl_opts.set_text(str(table._props["options"]["data"][0]))
+
+        ui.button("update options to label", on_click=update_options_to_label)
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    first_name_input = table_locator.get_by_role("textbox").first
+
+    table_expect = expect(table_locator)
+
+    table_expect.to_be_visible()
+
+    expect(first_name_input).to_have_value("bar")
+
+    # client options
+    first_name_input.fill("new bar")
+    page.get_by_role("button").filter(has_text="update options to label").click()
+    expect(page.locator(".table-options")).to_contain_text(
+        """{'id': 1, 'name': 'new bar', 'age': '12'}"""
+    )
