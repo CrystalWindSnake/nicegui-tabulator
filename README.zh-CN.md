@@ -12,11 +12,11 @@
 
 ## 功能
 
-- [x] 轻松使用 Tabulator 库各种事件、方法
-- [x] 单元格插槽：可以在单元格中放入任意 nicegui 组件并获得所有功能，而无须编写字符串模板。[示例](#cell-slot)
-- [x] 内置支持从 pandas 数据创建表格。[示例](#from_pandas)
-- [ ] 内置支持 excel、pdf 等格式下载
-- [ ] 行插槽
+- ✅轻松使用 Tabulator 库各种事件、方法
+- ✅单元格插槽：可以在单元格中放入任意 nicegui 组件并获得所有功能，而无须编写字符串模板。[示例](#cell-slot)
+- ✅内置支持从 pandas 数据创建表格。[示例](#from_pandas)
+- 🔲内置支持 excel、pdf 等格式下载
+- 🔲行插槽
 
 ## 安装
 
@@ -145,6 +145,9 @@ table_config = {
         {"title": "Name", "field": "name"},
         {"title": "Age", "field": "age"},
     ],
+    "printConfig": {
+        "formatCells": False,
+    },
 }
 
 table = tabulator(table_config)

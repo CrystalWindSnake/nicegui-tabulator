@@ -11,11 +11,11 @@ English| [简体中文](./README.zh-CN.md)
 
 ## Features
 
-- [x] Easily utilize various events and methods from the Tabulator library.
-- [x] Cell Slots: Place any NiceGUI component within a cell and access all its functionalities without writing string templates. [Example](#cell-slot)
-- [x] Built-in support for creating tables from pandas data. [Example](#from_pandas)
-- [ ] Built-in support for downloading in formats such as Excel, PDF, etc.
-- [ ] Row Slots
+- ✅Easily utilize various events and methods from the Tabulator library.
+- ✅Cell Slots: Place any NiceGUI component within a cell and access all its functionalities without writing string templates. [Example](#cell-slot)
+- ✅Built-in support for creating tables from pandas data. [Example](#from_pandas)
+- 🔲Built-in support for downloading in formats such as Excel, PDF, etc.
+- 🔲Row Slots
 
 
 ## Installation
@@ -148,6 +148,9 @@ table_config = {
         {"title": "Name", "field": "name"},
         {"title": "Age", "field": "age"},
     ],
+    "printConfig": {
+        "formatCells": False,
+    },
 }
 
 table = tabulator(table_config)
