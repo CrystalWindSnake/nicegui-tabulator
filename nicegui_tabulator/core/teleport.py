@@ -7,5 +7,8 @@ class Teleport(Element, component="teleport.js"):
         super().__init__()
         self._props["to"] = to
 
+    def forceUpdate(self):
+        self.run_method("forceUpdate")
+
 
 teleport = Teleport

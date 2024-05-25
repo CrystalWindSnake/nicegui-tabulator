@@ -1,9 +1,8 @@
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 from nicegui.element import Element
 from nicegui.awaitable_response import AwaitableResponse
 from warnings import warn
-from collections import defaultdict
 from .utils import DeferredTask
 from .teleport import teleport
 from .types import CellSlotProps
@@ -30,25 +29,29 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
 
-        self._cell_slot_map: defaultdict[str, List[Callable]] = defaultdict(list)
+        self._cell_slot_map: Dict[str, Callable] = {}
+        self._teleport_slots_cache: Dict[Tuple[str, int], teleport] = {}
 
-        def on_table_built(e):
-            options: Dict = self._props["options"]
-            columns: List[Dict] = options.get("columns", [])
-            field_map = {col.get("field"): col for col in columns}
+        def on_update_cell_slot(e):
+            field = e.args["field"]
+            row_number = e.args["rowNumber"]
+            key = (field, row_number)
 
-            # Ensure that the column configuration information exists and set the correct formatter
+            if field not in self._cell_slot_map:
+                return
 
-            for field, fns in self._cell_slot_map.items():
-                if field not in field_map:
-                    continue
-
-                for fn in fns:
-                    fn()
+            if key in self._teleport_slots_cache:
+                tp = self._teleport_slots_cache[key]
+                tp.forceUpdate()
+            else:
+                fn = self._cell_slot_map[field]
+                tp = fn(row_number)
+                if tp:
+                    self._teleport_slots_cache[key] = tp
 
             self.run_table_method("redraw")
 
-        self.on_event("tableBuilt", on_table_built)
+        self.on("updateCellSlot", on_update_cell_slot)
 
     def on_event(
         self,
@@ -228,7 +231,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         id = f"c{self.id}"
 
         def wrapper(build_fn: Callable[[CellSlotProps], None]):
-            def fn():
+            def fn(row_number: int):
                 options = self._props["options"]
                 data = options.get("data", [])
                 # columns = options.get("columns", [])
@@ -236,30 +239,39 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 if not data:
                     return
 
-                for idx, row in enumerate(data):
-                    class_name = f"ng-cell-slot-{field}-{idx + 1}"
-                    with teleport(f"#{id} .{class_name}"):
-                        cell_slot = CellSlotProps(
-                            field=field, value=row[field], row=row, row_number=idx + 1
-                        )
-                        build_fn(cell_slot)
+                row = data[row_number - 1]
+
+                class_name = f"ng-cell-slot-{field}-{row_number}"
+                with teleport(f"#{id} .{class_name}") as tp:
+                    cell_slot = CellSlotProps(
+                        field=field,
+                        value=row[field],
+                        row=row,
+                        row_number=row_number,
+                        table=self,
+                    )
+                    build_fn(cell_slot)
+
+                return tp
 
             self.update_column_definition(
                 field,
                 {
-                    ":formatter": r"""
-        function(cell, formatterParams, onRendered){
-            onRendered(function(){
+                    ":formatter": rf"""
+        function(cell, formatterParams, onRendered){{
+            onRendered(function(){{
                 const row = cell.getRow();
                 const field = cell.getField();
-                const index = row.getIndex();
+                const rowNumber = row.getIndex();
                 const target = cell.getElement();
-                target.classList.add(`ng-cell-slot-${field}-${index}`);
-            });
-        }
+                target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowNumber}}"></div>`
+                const table = getElement({self.id});
+                runMethod(table, 'updateCellSlot',[field,rowNumber]);
+            }});
+        }}
         """
                 },
             )
-            self._cell_slot_map[field].append(fn)
+            self._cell_slot_map[field] = fn
 
         return wrapper
