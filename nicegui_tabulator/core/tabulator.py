@@ -53,6 +53,11 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         self.on("updateCellSlot", on_update_cell_slot)
 
+    def delete(self) -> None:
+        for tp in self._teleport_slots_cache.values():
+            tp.delete()
+        return super().delete()
+
     def on_event(
         self,
         event: str,
@@ -285,7 +290,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 const field = cell.getField();
                 const rowNumber = row.getIndex();
                 const target = cell.getElement();
-                target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowNumber}}"></div>`
+                target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowNumber}} fit"></div>`
                 const table = getElement({self.id});
                 runMethod(table, 'updateCellSlot',[field,rowNumber]);
             }});
