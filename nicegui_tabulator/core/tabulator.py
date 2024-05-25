@@ -224,7 +224,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         return cls(options)
 
-    def cell_slot(
+    def add_cell_slot(
         self,
         field: str,
     ):
@@ -234,8 +234,6 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
             def fn(row_number: int):
                 options = self._props["options"]
                 data = options.get("data", [])
-                # columns = options.get("columns", [])
-
                 if not data:
                     return
 

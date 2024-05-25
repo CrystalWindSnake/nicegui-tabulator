@@ -17,11 +17,5 @@ class CellSlotProps:
     table: Tabulator = dc_field(init=True, repr=False)
 
     def update_value(self, value):
-        id = self.row["id"]
-
-        options = self.table._props["options"]
-        data = options["data"]
-
+        data = self.table._props["options"]["data"]
         data[self.row_number - 1].update({self.field: value})
-
-        # self.table.run_table_method("updateData", [{"id": id, self.field: value}])

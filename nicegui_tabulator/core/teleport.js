@@ -10,7 +10,6 @@ export default {
   },
   methods: {
     forceUpdate() {
-      // console.log('forceUpdate', this.to);
       this.key++;
     }
   }
