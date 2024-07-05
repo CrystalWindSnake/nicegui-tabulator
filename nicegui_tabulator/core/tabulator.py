@@ -289,7 +289,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
             onRendered(function(){{
                 const row = cell.getRow();
                 const field = cell.getField();
-                const rowNumber = row.getIndex();
+                const rowNumber = row.getPosition();
                 const target = cell.getElement();
                 target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowNumber}} fit"></div>`
                 const table = getElement({self.id});
