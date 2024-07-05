@@ -22,6 +22,15 @@ _T_THEME_NAME = Literal[
 
 
 def use_theme(theme_name: _T_THEME_NAME, shared: Optional[bool] = None) -> None:
+    """Use a tabulator theme.
+
+    Args:
+        theme_name (_T_THEME_NAME):  name of the theme to use.
+        shared (Optional[bool], optional):  Whether to use the theme for all clients or only the current client.
+            `None`(default): use the theme for all clients if the current client is an auto-index client, otherwise use it only for the current client.
+            `True`: use the theme for all clients.
+            `False`: use the theme only for the current client.
+    """
     if shared is None:
         shared = ui.context.client.is_auto_index_client
 
