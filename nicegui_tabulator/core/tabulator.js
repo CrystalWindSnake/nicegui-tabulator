@@ -59,9 +59,12 @@ export default {
   },
   async mounted() {
     await this.$nextTick(); // NOTE: wait for window.path_prefix to be set
-    await Promise.all([
-      loadResource(window.path_prefix + `${this.resource_path}/tabulator.min.css`),
-    ]);
+    const hasNiceGuiTabulatorTheme = document.querySelector('link.nicegui-tabulator-theme') !== null;
+    if (!hasNiceGuiTabulatorTheme) {
+      await Promise.all([
+        loadResource(window.path_prefix + `${this.resource_path}/tabulator.min.css`),
+      ]);
+    }
 
     convertDynamicProperties(this.options, true);
     this.table = new Tabulator(this.$el, this.options);
