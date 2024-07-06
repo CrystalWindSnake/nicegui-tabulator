@@ -30,6 +30,23 @@ def use_theme(theme_name: _T_THEME_NAME, shared: Optional[bool] = None) -> None:
             `None`(default): use the theme for all clients if the current client is an auto-index client, otherwise use it only for the current client.
             `True`: use the theme for all clients.
             `False`: use the theme only for the current client.
+
+    ## Example
+
+    ```python
+    from nicegui_tabulator import tabulator, use_theme
+
+    # use the theme for all clients
+    use_theme('bootstrap4')
+
+    # use the theme only for the current client
+    use_theme('bootstrap4', shared=False)
+
+    @ui.page('/')
+    def my_page():
+        # use the theme only for this page
+        use_theme('bootstrap4')
+    ```
     """
     if shared is None:
         shared = ui.context.client.is_auto_index_client
@@ -45,6 +62,17 @@ def use_theme(theme_name: _T_THEME_NAME, shared: Optional[bool] = None) -> None:
         raise ValueError(f"theme '{css_path.resolve()}' not found")
 
     app.add_static_file(local_file=css_path, url_path="/" + css_name)
+
+    if ui.context.client.has_socket_connection:
+        ui.run_javascript(
+            """
+    const linkElements = document.querySelectorAll('link.nicegui-tabulator-theme');
+    linkElements.forEach(linkElement => {
+        linkElement.parentNode.removeChild(linkElement);
+    });
+"""
+        )
+
     ui.add_head_html(
         rf'<link class="nicegui-tabulator-theme" rel="stylesheet" href="/{css_name}">',
         shared=shared,
