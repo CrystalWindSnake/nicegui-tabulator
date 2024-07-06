@@ -12,6 +12,7 @@ English| [简体中文](./README.zh-CN.md)
 ## Features
 
 - ✅Easily utilize various events and methods from the Tabulator library.
+- ✅Built-in themes for Bootstrap 4 and Material Design.[Example](#use_theme)
 - ✅Cell Slots: Place any NiceGUI component within a cell and access all its functionalities without writing string templates. [Example](#cell-slot)
 - ✅Built-in support for creating tables from pandas data. [Example](#from_pandas)
 - 🔲Built-in support for downloading in formats such as Excel, PDF, etc.
@@ -174,4 +175,23 @@ def print_table_data():
     table.run_table_method("print", True)
 
 ui.button("print table data", on_click=print_table_data)
+```
+
+---
+
+### use_theme
+
+```python
+from nicegui_tabulator import tabulator, use_theme
+
+# use the theme for all clients
+use_theme('bootstrap4')
+
+# use the theme only for the current client
+use_theme('bootstrap4', shared=False)
+
+@ui.page('/')
+def my_page():
+    # use the theme only for this page
+    use_theme('bootstrap4')
 ```

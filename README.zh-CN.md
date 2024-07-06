@@ -13,6 +13,7 @@
 ## 功能
 
 - ✅轻松使用 Tabulator 库各种事件、方法
+- ✅内置主题：支持 bootstrap4、bulma、materialize、semantic-ui 等。[示例](#use_theme)
 - ✅单元格插槽：可以在单元格中放入任意 nicegui 组件并获得所有功能，而无须编写字符串模板。[示例](#cell-slot)
 - ✅内置支持从 pandas 数据创建表格。[示例](#from_pandas)
 - 🔲内置支持 excel、pdf 等格式下载
@@ -175,4 +176,21 @@ ui.button("print table data", on_click=print_table_data)
 
 ```
 
+---
 
+### use_theme
+
+```python
+from nicegui_tabulator import tabulator, use_theme
+
+# 所有客户端都使用 bootstrap4 主题
+use_theme('bootstrap4')
+
+# 仅当前客户端使用 bootstrap4 主题
+use_theme('bootstrap4', shared=False)
+
+@ui.page('/')
+def my_page():
+    # 仅本页面使用 bootstrap4 主题
+    use_theme('bootstrap4')
+```
