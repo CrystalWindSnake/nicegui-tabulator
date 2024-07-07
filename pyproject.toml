@@ -17,6 +17,13 @@ pytest-playwright = "^0.5.0"
 pandas = "^2.0.0"
 nicegui = "^1.4.28"
 
+[tool.poetry.group.testing.dependencies]
+pytest = "^8.2.0"
+playwright = "^1.43.0"
+pytest-playwright = "^0.5.0"
+pandas = "^2.0.0"
+nicegui = "^1.4.28"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
