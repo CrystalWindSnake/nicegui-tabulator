@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta, timezone
 import re
-from typing import List
+from typing import Dict, List, Optional
 from nicegui import ui
 from .screen import BrowserManager
 from playwright.sync_api import expect, Locator
 from nicegui_tabulator import tabulator, CellSlotProps
 import pandas as pd
+from copy import deepcopy
 
 
 def get_table_data(table: Locator):
@@ -411,7 +412,7 @@ def test_cell_slot_should_correct_value_after_update(
     expect(first_name_input).to_have_value("new bar")
 
 
-def test_update_data(browser: BrowserManager, page_path: str):
+def test_update_datax(browser: BrowserManager, page_path: str):
     @ui.page(page_path)
     def _():
         tabledata = [
@@ -471,24 +472,35 @@ def test_update_data(browser: BrowserManager, page_path: str):
             ),
         )
 
+        async def check_data():
+            client_data = await table.run_table_method("getData")
+            assert client_data == table.data
+
+        ui.button("check data", on_click=check_data)
+
     page = browser.open(page_path)
     table_locator = page.locator(".target")
+    check_data_btn = page.get_by_role("button").filter(has_text="check data")
 
     # set data
     page.get_by_role("button").filter(has_text="set data").click()
     check_table_rows(table_locator, [["bar-set-data", "12"]])
+    check_data_btn.click()
 
     # replace data
     page.get_by_role("button").filter(has_text="replace data").click()
     check_table_rows(table_locator, [["bar-replace-data", "66"]])
+    check_data_btn.click()
 
     # update data
     page.get_by_role("button").filter(has_text="update data").click()
     check_table_rows(table_locator, [["bar-update-data", "12"]])
+    check_data_btn.click()
 
     # adding data
     page.get_by_role("button").filter(has_text=re.compile("^adding data$")).click()
     check_table_rows(table_locator, [["bar-update-data", "12"], ["bar-add-data", "99"]])
+    check_data_btn.click()
 
     # adding data at top
     page.get_by_role("button").filter(
@@ -502,6 +514,7 @@ def test_update_data(browser: BrowserManager, page_path: str):
             ["bar-add-data", "99"],
         ],
     )
+    check_data_btn.click()
 
     # adding data at top with index
     page.get_by_role("button").filter(
@@ -515,4 +528,419 @@ def test_update_data(browser: BrowserManager, page_path: str):
             ["bar-add-data-top-with-index", "99"],
             ["bar-add-data", "99"],
         ],
+    )
+    check_data_btn.click()
+
+
+def create_table_options(data: Optional[List[Dict]] = None):
+    tabledata = data or [
+        {"id": 1, "name": "bar", "age": "12"},
+        {"id": 2, "name": "foo", "age": "1"},
+    ]
+
+    table_config = {
+        "data": tabledata,
+        "columns": [
+            {"title": "Name", "field": "name"},
+            {"title": "Age", "field": "age"},
+        ],
+    }
+
+    return table_config
+
+
+def expect_server_data(expected_data: List[Dict], actual_locator: Locator):
+    expect(actual_locator).to_contain_text(str(expected_data))
+
+
+def test_set_data(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        table = tabulator(create_table_options()).classes("target")
+
+        text_server_data = ui.label("").classes("server-data")
+
+        ui.button(
+            "set data",
+            on_click=lambda: (
+                table.set_data([{"id": 1, "name": "bar-set-data", "age": "12"}]),
+                text_server_data.set_text(str(table.data)),
+            ),
+        )
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    text_server_data = page.locator(".server-data")
+
+    # set data
+    page.get_by_role("button").filter(has_text="set data").click()
+    check_table_rows(table_locator, [["bar-set-data", "12"]])
+
+    expect_server_data(
+        [{"id": 1, "name": "bar-set-data", "age": "12"}], text_server_data
+    )
+
+
+def test_replace_data(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        table = tabulator(create_table_options()).classes("target")
+
+        text_server_data = ui.label("").classes("server-data")
+
+        ui.button(
+            "replace data",
+            on_click=lambda: (
+                table.replace_data(
+                    [{"id": 1, "name": "bar-replace-data", "age": "12"}]
+                ),
+                text_server_data.set_text(str(table.data)),
+            ),
+        )
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    text_server_data = page.locator(".server-data")
+
+    # set data
+    page.get_by_role("button").filter(has_text="replace data").click()
+    check_table_rows(table_locator, [["bar-replace-data", "12"]])
+
+    expect_server_data(
+        [{"id": 1, "name": "bar-replace-data", "age": "12"}], text_server_data
+    )
+
+
+def test_update_data(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        table = tabulator(create_table_options()).classes("target")
+
+        text_server_data = ui.label("").classes("server-data")
+
+        ui.button(
+            "update data",
+            on_click=lambda: (
+                table.update_data([{"id": 1, "name": "bar-update-data", "age": "12"}]),
+                text_server_data.set_text(str(table.data)),
+            ),
+        )
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    text_server_data = page.locator(".server-data")
+
+    # set data
+    page.get_by_role("button").filter(has_text="update data").click()
+    check_table_rows(table_locator, [["bar-update-data", "12"], ["foo", "1"]])
+
+    expect_server_data(
+        [
+            {"id": 1, "name": "bar-update-data", "age": "12"},
+            {"id": 2, "name": "foo", "age": "1"},
+        ],
+        text_server_data,
+    )
+
+
+def test_add_data(browser: BrowserManager, page_path: str):
+    table_data = create_table_options()
+
+    @ui.page(page_path)
+    def _():
+        table = tabulator(table_data).classes("target")
+
+        text_server_data = ui.label("").classes("server-data")
+
+        ui.button(
+            "add data",
+            on_click=lambda: (
+                table.add_data([{"id": 3, "name": "bar-add-data", "age": "99"}]),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("add-data")
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    text_server_data = page.locator(".server-data")
+    server_data = deepcopy(table_data["data"])
+
+    # add data
+    page.locator(".add-data").click()
+    check_table_rows(
+        table_locator, [["bar", "12"], ["foo", "1"], ["bar-add-data", "99"]]
+    )
+
+    server_data.append(
+        {"id": 3, "name": "bar-add-data", "age": "99"},
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+
+def test_add_data_with_at_top(browser: BrowserManager, page_path: str):
+    table_data = create_table_options()
+
+    @ui.page(page_path)
+    def _():
+        table = tabulator(table_data).classes("target")
+
+        text_server_data = ui.label("").classes("server-data")
+
+        ui.button(
+            "add data at top",
+            on_click=lambda: (
+                table.add_data(
+                    [{"id": 3, "name": "new-bar1", "age": "99"}], at_top=True
+                ),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("at-top")
+
+        ui.button(
+            "add data at bottom",
+            on_click=lambda: (
+                table.add_data(
+                    [{"id": 4, "name": "new-bar2", "age": "99"}], at_top=False
+                ),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("at-bottom")
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    text_server_data = page.locator(".server-data")
+    server_data = deepcopy(table_data["data"])
+
+    # add data
+    page.locator(".at-top").click()
+    check_table_rows(table_locator, [["new-bar1", "99"], ["bar", "12"], ["foo", "1"]])
+
+    server_data.insert(
+        0,
+        {"id": 3, "name": "new-bar1", "age": "99"},
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+    # at bottom
+    page.locator(".at-bottom").click()
+    check_table_rows(
+        table_locator,
+        [
+            ["new-bar1", "99"],
+            ["bar", "12"],
+            ["foo", "1"],
+            ["new-bar2", "99"],
+        ],
+    )
+
+    server_data.append(
+        {"id": 4, "name": "new-bar2", "age": "99"},
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+
+def test_add_data_with_index(browser: BrowserManager, page_path: str):
+    table_data = create_table_options()
+
+    @ui.page(page_path)
+    def _():
+        table = tabulator(table_data).classes("target")
+
+        text_server_data = ui.label("").classes("server-data")
+
+        ui.button(
+            "with index without at top",
+            on_click=lambda: (
+                table.add_data([{"id": 3, "name": "new-bar1", "age": "99"}], index=2),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("index-without-top")
+
+        ui.button(
+            "with index at top",
+            on_click=lambda: (
+                table.add_data(
+                    [{"id": 4, "name": "new-bar2", "age": "99"}], at_top=False, index=2
+                ),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("index-at-bottom")
+
+        ui.button(
+            "with index at top",
+            on_click=lambda: (
+                table.add_data(
+                    [{"id": 5, "name": "new-bar3", "age": "99"}], at_top=True, index=2
+                ),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("index-at-top")
+
+        ui.button(
+            "with index not exist at top",
+            on_click=lambda: (
+                table.add_data(
+                    [{"id": 6, "name": "new-bar4", "age": "99"}], at_top=True, index=99
+                ),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("index-not-exist-at-top")
+
+        ui.button(
+            "with index not exist at bottom",
+            on_click=lambda: (
+                table.add_data(
+                    [{"id": 7, "name": "new-bar5", "age": "99"}], at_top=False, index=99
+                ),
+                text_server_data.set_text(str(table.data)),
+            ),
+        ).classes("index-not-exist-at-bottom")
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    text_server_data = page.locator(".server-data")
+    server_data = deepcopy(table_data["data"])
+
+    # with index without at top
+    page.locator(".index-without-top").click()
+    check_table_rows(table_locator, [["bar", "12"], ["foo", "1"], ["new-bar1", "99"]])
+
+    server_data.append(
+        {"id": 3, "name": "new-bar1", "age": "99"},
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+    #  with index at buttom
+    page.locator(".index-at-bottom").click()
+    check_table_rows(
+        table_locator,
+        [
+            ["bar", "12"],
+            ["foo", "1"],
+            ["new-bar2", "99"],
+            ["new-bar1", "99"],
+        ],
+    )
+
+    server_data.insert(
+        2,
+        {"id": 4, "name": "new-bar2", "age": "99"},
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+    #  with index at top
+    page.locator(".index-at-top").click()
+    check_table_rows(
+        table_locator,
+        [
+            ["bar", "12"],
+            ["new-bar3", "99"],
+            ["foo", "1"],
+            ["new-bar2", "99"],
+            ["new-bar1", "99"],
+        ],
+    )
+
+    server_data.insert(
+        0,
+        {"id": 6, "name": "new-bar4", "age": "99"},
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+    # with index not exist at top
+    page.locator(".index-not-exist-at-top").click()
+    check_table_rows(
+        table_locator,
+        [
+            ["new-bar4", "99"],
+            ["bar", "12"],
+            ["new-bar3", "99"],
+            ["foo", "1"],
+            ["new-bar2", "99"],
+            ["new-bar1", "99"],
+        ],
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+    # with index not exist at bottom
+    page.locator(".index-not-exist-at-bottom").click()
+    check_table_rows(
+        table_locator,
+        [
+            ["new-bar4", "99"],
+            ["bar", "12"],
+            ["new-bar3", "99"],
+            ["foo", "1"],
+            ["new-bar2", "99"],
+            ["new-bar1", "99"],
+            ["new-bar5", "99"],
+        ],
+    )
+
+    server_data.append(
+        {"id": 7, "name": "new-bar5", "age": "99"},
+    )
+
+    expect_server_data(
+        server_data,
+        text_server_data,
+    )
+
+
+def test_clear_data(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        table = tabulator(create_table_options()).classes("target")
+
+        text_server_data = ui.label("").classes("server-data")
+
+        ui.button(
+            "clear data",
+            on_click=lambda: (
+                table.clear_data(),
+                text_server_data.set_text(str(table.data)),
+            ),
+        )
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+    text_server_data = page.locator(".server-data")
+
+    page.get_by_role("button").filter(has_text=re.compile("^clear data$")).click()
+    check_table_rows(
+        table_locator,
+        [],
+    )
+
+    expect_server_data(
+        [],
+        text_server_data,
     )
