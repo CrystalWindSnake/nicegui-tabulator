@@ -433,23 +433,6 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 row_index = indices[0] + (0 if at_top else 1)
 
         self._set_data_on_server(self.data[:row_index] + data + self.data[row_index:])
-        return
-
-        if at_top:
-            self._set_data_on_server([*data, *self.data])
-        elif index is not None:
-            index_field = self.index_field
-            indices = [
-                i for i, row in enumerate(self.data) if row[index_field] == index
-            ]
-            if not indices:
-                self._set_data_on_server([*self.data, *data])
-                return
-
-            index = indices[0]
-            self._set_data_on_server(self.data[:index] + data + self.data[index:])
-        else:
-            self._set_data_on_server([*self.data, *data])
 
     def _set_data_on_server(self, data: List[Dict]):
         if "data" not in self._props["options"]:
@@ -474,6 +457,6 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         for item in self.data:
             if item["id"] in update_dict:
-                item.update(item)
-            else:
-                self.data.append(item)
+                item.update(update_dict.pop(item["id"]))
+
+        self._set_data_on_server([*self.data, *update_dict.values()])
