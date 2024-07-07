@@ -440,11 +440,12 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         self._props["options"]["data"] = data[:]
 
     def _update_data_on_server(self, data: List[Dict]):
-        update_dict = {record["id"]: record for record in data}
+        index_field = self.index_field
+        update_dict = {record[index_field]: record for record in data}
 
         for row in self.data:
-            update_id = row.get("id", None)
-            if not "id":
+            update_id = row.get(index_field, None)
+            if not update_id:
                 continue
 
             update_record = update_dict.get(update_id, None)
