@@ -23,6 +23,6 @@ jobs:
         run: |
           set -x
           poetry config virtualenvs.create false
-          poetry install --all-extras --without dev 
+          poetry install --extras testing 
           python -m playwright install 
       - run: pytest tests/
