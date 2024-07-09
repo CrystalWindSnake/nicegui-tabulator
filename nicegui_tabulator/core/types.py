@@ -22,6 +22,17 @@ class CellSlotProps:
     """The parent Tabulator instance."""
 
     def update_value(self, value):
-        """Updates the value of the field in the row data."""
-        data = self.table._props["options"]["data"]
-        data[self.row_number - 1].update({self.field: value})
+        """Updates the value of the field in the row data only on the server side."""
+        index_field = self.table.index_field
+        data = [{index_field: self.row[index_field], self.field: value}]
+        self.table._update_data_on_server(data)
+
+    def update_to_client(self):
+        """Updates the value of the field in the row data on the client side."""
+
+        index_field = self.table.index_field
+        data = [{index_field: self.row[index_field], self.field: self.row[self.field]}]
+        self.table.run_table_method(
+            "updateData",
+            data,
+        )

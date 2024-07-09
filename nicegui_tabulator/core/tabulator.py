@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from nicegui.element import Element
 from nicegui.awaitable_response import AwaitableResponse
 from warnings import warn
@@ -50,7 +50,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
             if tp:
                 self._teleport_slots_cache[key] = tp
 
-            self.run_table_method("redraw")
+            self.run_method("resetRowFormat", row_number)
 
         self.on("updateCellSlot", on_update_cell_slot)
 
@@ -461,3 +461,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 item.update(update_dict.pop(item["id"]))
 
         self._set_data_on_server([*self.data, *update_dict.values()])
+
+    def print(self):
+        self.sync_data_to_client()
+        self.run_method("print")

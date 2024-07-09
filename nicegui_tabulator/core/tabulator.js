@@ -68,6 +68,13 @@ export default {
 
     convertDynamicProperties(this.options, true);
     this.table = new Tabulator(this.$el, this.options);
+
+    this.table.on('tableBuilt', () => {
+      setTimeout(() => {
+        this.table.redraw();
+      }, 800);
+    });
+
   },
 
   methods: {
@@ -111,6 +118,8 @@ export default {
       this.$emit('updateCellSlot', { field, rowNumber })
     },
 
-
+    resetRowFormat(position) {
+      this.table.getRowFromPosition(position).normalizeHeight();
+    }
   },
 };
