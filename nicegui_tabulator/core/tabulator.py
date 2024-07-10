@@ -1,11 +1,11 @@
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from nicegui.element import Element
 from nicegui.awaitable_response import AwaitableResponse
 from warnings import warn
 from .utils import DeferredTask
 from .teleport import teleport
-from .types import CellSlotProps
+from .types import CellSlotProps, T_Row_Range_Lookup
 
 try:
     import pandas as pd
@@ -454,14 +454,28 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 row.update(update_record)
 
     def _update_or_add_data_on_server(self, data: List[Dict]):
-        update_dict = {item["id"]: item for item in data}
+        index_field = self.index_field
+        update_dict = {item[index_field]: item for item in data}
 
         for item in self.data:
-            if item["id"] in update_dict:
-                item.update(update_dict.pop(item["id"]))
+            if item[index_field] in update_dict:
+                item.update(update_dict.pop(item[index_field]))
 
         self._set_data_on_server([*self.data, *update_dict.values()])
 
-    def print(self):
+    def print(
+        self,
+        *,
+        row_range_lookup: Optional[T_Row_Range_Lookup] = None,
+        style: Optional[bool] = True,
+        config: Optional[Dict] = None,
+    ):
+        """A full page printing of the contents of the table without any other elements from the page.
+
+        Args:
+            row_range_lookup (Optional[T_Row_Range_Lookup], optional): Determins which rows are shown in the printed table, if no value is set it will use the value set in the printRowRange option.
+            style (Optional[bool], optional): Determines if the output of the function should be styled to match the table (true) or be a blank html table (false), if you leave this argument out it will take the value of the printStyled option. Defaults to True.
+            config (Optional[Dict], optional): An object that can be used to override the object set on the printConfig option. Defaults to None.
+        """
         self.sync_data_to_client()
-        self.run_method("print")
+        self.run_table_method("print", row_range_lookup, style, config)
