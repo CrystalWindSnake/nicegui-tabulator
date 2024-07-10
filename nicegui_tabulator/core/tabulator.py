@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from nicegui.element import Element
 from nicegui.awaitable_response import AwaitableResponse
 from warnings import warn
@@ -50,9 +50,21 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
             if tp:
                 self._teleport_slots_cache[key] = tp
 
-            self.run_table_method("redraw")
+            self.run_method("resetRowFormat", row_number)
 
         self.on("updateCellSlot", on_update_cell_slot)
+
+    @property
+    def index_field(self):
+        """Get the index field for the tabulator table.By default Tabulator will look for this value in the id field for the data."""
+        return self._props["options"].get("index", "id")
+
+    @property
+    def data(self):
+        """Get or set the data for the tabulator table."""
+        if "data" not in self._props["options"]:
+            self._props["options"]["data"] = []
+        return self._props["options"]["data"]
 
     def delete(self) -> None:
         for tp in self._teleport_slots_cache.values():
@@ -313,6 +325,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
 
         """
+        self._set_data_on_server(data)
         self.run_table_method("setData", data)
         return self
 
@@ -324,9 +337,8 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         Args:
             data (List[Dict]): The data to replace the current data with.
 
-
         """
-        self.run_table_method("replaceData", data)
+        self.set_data(data)
         return self
 
     def update_data(self, data: List[Dict]):
@@ -340,6 +352,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         """
 
+        self._update_data_on_server(data)
         self.run_table_method("updateData", data)
         return self
 
@@ -347,7 +360,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         self,
         data: List[Dict],
         at_top: Optional[bool] = None,
-        index: Optional[int] = None,
+        index: Optional[Union[int, str]] = None,
     ):
         """add data to the table.
 
@@ -356,9 +369,10 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         Args:
             data (List[Dict]): The data to add to the current data.
             at_top (Optional[bool], optional): determines whether the data is added to the top or bottom of the table. A value of true will add the data to the top of the table, a value of false will add the data to the bottom of the table. If the parameter is not set the data will be placed according to the addRowPos global option.
-            index (Optional[int], optional): position the new rows next to the specified row (above or below based on the value of the second argument). This argument will take any of the standard row component look up options
+            index (Optional[Union[int, str]], optional): table row index. position the new rows next to the specified row (above or below based on the value of the second argument). This argument will take any of the standard row component look up options
 
         """
+        self._add_data_on_server(data, at_top, index)
         self.run_table_method("addData", data, at_top, index)
         return self
 
@@ -372,6 +386,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
             data (List[Dict]): The data to update or add to the current data.
 
         """
+        self._update_or_add_data_on_server(data)
         self.run_table_method("updateOrAddData", data)
         return self
 
@@ -381,6 +396,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         @see https://tabulator.info/docs/6.2/update#alter-empty
 
         """
+        self._set_data_on_server([])
         self.run_table_method("clearData")
         return self
 
@@ -391,3 +407,61 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         """
         self.set_data(self._props["options"]["data"])
         return self
+
+    def _add_data_on_server(
+        self,
+        data: List[Dict],
+        at_top: Optional[bool] = None,
+        index: Optional[Union[int, str]] = None,
+    ):
+        at_top = (
+            at_top
+            if at_top is not None
+            else self._props["options"].get("addRowPos", "bottom") == "top"
+        )
+
+        if index is None:
+            row_index = 0 if at_top else len(self.data)
+        else:
+            index_field = self.index_field
+            indices = [
+                i for i, row in enumerate(self.data) if row[index_field] == index
+            ]
+            if not indices:
+                row_index = 0 if at_top else len(self.data)
+            else:
+                row_index = indices[0] + (0 if at_top else 1)
+
+        self._set_data_on_server(self.data[:row_index] + data + self.data[row_index:])
+
+    def _set_data_on_server(self, data: List[Dict]):
+        if "data" not in self._props["options"]:
+            self._props["options"]["data"] = None
+        self._props["options"]["data"] = data[:]
+
+    def _update_data_on_server(self, data: List[Dict]):
+        index_field = self.index_field
+        update_dict = {record[index_field]: record for record in data}
+
+        for row in self.data:
+            update_id = row.get(index_field, None)
+            if not update_id:
+                continue
+
+            update_record = update_dict.get(update_id, None)
+
+            if update_record:
+                row.update(update_record)
+
+    def _update_or_add_data_on_server(self, data: List[Dict]):
+        update_dict = {item["id"]: item for item in data}
+
+        for item in self.data:
+            if item["id"] in update_dict:
+                item.update(update_dict.pop(item["id"]))
+
+        self._set_data_on_server([*self.data, *update_dict.values()])
+
+    def print(self):
+        self.sync_data_to_client()
+        self.run_method("print")
