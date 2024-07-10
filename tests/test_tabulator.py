@@ -22,6 +22,66 @@ def check_table_rows(table: Locator, expected_data: List[List]):
         expect(row).to_contain_text("".join(data_row))
 
 
+def create_table_options(data: Optional[List[Dict]] = None):
+    tabledata = data or [
+        {"id": 1, "name": "bar", "age": "12"},
+        {"id": 2, "name": "foo", "age": "1"},
+    ]
+
+    table_config = {
+        "data": tabledata,
+        "columns": [
+            {"title": "Name", "field": "name"},
+            {"title": "Age", "field": "age"},
+        ],
+    }
+
+    return table_config
+
+
+class ServerDataChecker:
+    def __init__(
+        self,
+        server_classes="server-data",
+        client_classes="client-data",
+        show_client_data_btn_class="show-client-data",
+        show_server_data_btn_class="show-server-data",
+    ):
+        self.server_classes = server_classes
+        self.client_classes = client_classes
+        self.show_client_data_btn_class = show_client_data_btn_class
+        self.show_server_data_btn_class = show_server_data_btn_class
+
+    def create_elements(self, table: tabulator, server_data_button=False):
+        label_server_data = ui.label("").classes(self.server_classes)
+        text_client_data = ui.label("").classes(self.client_classes)
+
+        async def show_client_data():
+            data = await table.run_table_method("getData")
+            text_client_data.set_text(str(data))
+
+        ui.button("show client data", on_click=show_client_data).classes(
+            self.show_client_data_btn_class
+        )
+
+        if server_data_button:
+
+            def show_server_data():
+                label_server_data.set_text(str(table.data))
+
+            ui.button("show server data", on_click=show_server_data).classes(
+                self.show_server_data_btn_class
+            )
+
+        return label_server_data
+
+    def expect_server_data(self, page: Page):
+        server = page.locator(f".{self.server_classes}")
+        client = page.locator(f".{self.client_classes}")
+        page.locator(f".{self.show_client_data_btn_class}").click()
+        expect(server).to_contain_text(client.inner_text())
+
+
 def test_base(browser: BrowserManager, page_path: str):
     @ui.page(page_path)
     def _():
@@ -370,94 +430,70 @@ def test_cell_slot(browser: BrowserManager, page_path: str):
     )
 
 
-def test_cell_slot_should_correct_value_after_update(
-    browser: BrowserManager, page_path: str
-):
+def test_cell_slot_update_data_by_code(browser: BrowserManager, page_path: str):
+    server_data_checker = ServerDataChecker()
+
     @ui.page(page_path)
     def _():
-        tabledata = [
-            {"id": 1, "name": "bar", "age": "12"},
-            {"id": 2, "name": "foo", "age": "1"},
-        ]
-
-        table_config = {
-            "data": tabledata,
-            "columns": [
-                {"title": "Name", "field": "name"},
-                {"title": "Age", "field": "age"},
-            ],
-        }
+        table_config = create_table_options()
 
         table = tabulator(table_config).classes("target")
+        server_data_checker.create_elements(table, server_data_button=True)
 
         @table.add_cell_slot("name")
         def _(props: CellSlotProps):
-            ui.input(value=props.value, on_change=lambda e: props.update_value(e.value))
+            def on_blur():
+                props.update_to_client()
 
-        def print_table_data():
-            table.update_data([{"id": 1, "name": ""}])
+            ui.input(
+                value=props.value, on_change=lambda e: props.update_value(e.value)
+            ).on("blur", on_blur)
 
-        ui.button("print table data", on_click=print_table_data)
-        ui.button("redraw table", on_click=lambda: table.run_table_method("redraw"))
+        def change_data():
+            table.update_data([{"id": 1, "name": "change by code"}])
+
+        ui.button("change data", on_click=change_data).classes("change-data")
 
     page = browser.open(page_path)
     table_locator = page.locator(".target")
+    btn_change_data = page.locator(".change-data")
+    btn_show_client_data = page.locator(
+        f".{server_data_checker.show_client_data_btn_class}"
+    )
+    btn_show_server_data = page.locator(
+        f".{server_data_checker.show_server_data_btn_class}"
+    )
+
     first_name_input = table_locator.get_by_role("textbox").first
 
     first_name_input.fill("new bar")
-    page.get_by_role("button").filter(has_text="print table data").click()
-    page.get_by_role("button").filter(has_text="redraw table").click()
-
     expect(first_name_input).to_have_value("new bar")
 
+    btn_show_client_data.click()
+    btn_show_server_data.click()
 
-def create_table_options(data: Optional[List[Dict]] = None):
-    tabledata = data or [
-        {"id": 1, "name": "bar", "age": "12"},
-        {"id": 2, "name": "foo", "age": "1"},
-    ]
+    server_data_checker.expect_server_data(page)
 
-    table_config = {
-        "data": tabledata,
-        "columns": [
-            {"title": "Name", "field": "name"},
-            {"title": "Age", "field": "age"},
-        ],
-    }
+    # change data by code
+    btn_change_data.click()
+    btn_show_client_data.click()
+    btn_show_server_data.click()
 
-    return table_config
+    expect(first_name_input).to_have_value("change by code")
+    server_data_checker.expect_server_data(page)
 
+    # change data again
+    first_name_input.fill("new bar")
+    expect(first_name_input).to_have_value("new bar")
+    server_data_checker.expect_server_data(page)
 
-class ServerDataChecker:
-    def __init__(
-        self,
-        server_classes="server-data",
-        client_classes="client-data",
-        show_client_data_btn_class="show-client-data",
-    ):
-        self.server_classes = server_classes
-        self.client_classes = client_classes
-        self.show_client_data_btn_class = show_client_data_btn_class
+    # change data by code again
+    btn_change_data.click()
+    btn_show_client_data.click()
+    btn_show_server_data.click()
 
-    def create_elements(self, table: tabulator):
-        label_server_data = ui.label("").classes(self.server_classes)
-        text_client_data = ui.label("").classes(self.client_classes)
-
-        async def show_client_data():
-            data = await table.run_table_method("getData")
-            text_client_data.set_text(str(data))
-
-        ui.button("show client data", on_click=show_client_data).classes(
-            self.show_client_data_btn_class
-        )
-
-        return label_server_data
-
-    def expect_server_data(self, page: Page):
-        server = page.locator(f".{self.server_classes}")
-        client = page.locator(f".{self.client_classes}")
-        page.locator(f".{self.show_client_data_btn_class}").click()
-        expect(server).to_contain_text(client.inner_text())
+    expect(first_name_input).to_have_value("change by code")
+    server_data_checker.expect_server_data(page)
 
 
 def test_set_data(browser: BrowserManager, page_path: str):
