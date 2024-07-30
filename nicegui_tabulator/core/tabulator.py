@@ -204,6 +204,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
     def from_pandas(
         cls,
         df: "pd.DataFrame",
+        index: Optional[str] = None,
     ):
         """Create a table from a Pandas DataFrame.
 
@@ -213,6 +214,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         Args:
             df (pd.DataFrame): The DataFrame to create the table from.
+            index (str, optional): The field to be used as the unique index for each row..
         """
 
         def is_special_dtype(dtype):
@@ -235,10 +237,15 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 '`df.columns = ["_".join(col) for col in df.columns.values]`.'
             )
 
+        columns = [{"title": col, "field": col} for col in df.columns]
+
         options = {
             "data": df.to_dict(orient="records"),
-            "columns": [{"title": col, "field": col} for col in df.columns],
+            "columns": columns,
         }
+
+        if index is not None:
+            options["index"] = index
 
         return cls(options)
 
