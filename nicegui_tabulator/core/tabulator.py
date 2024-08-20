@@ -205,6 +205,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         cls,
         df: "pd.DataFrame",
         index: Optional[str] = None,
+        options: Optional[Dict] = None,
     ):
         """Create a table from a Pandas DataFrame.
 
@@ -214,7 +215,8 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         Args:
             df (pd.DataFrame): The DataFrame to create the table from.
-            index (str, optional): The field to be used as the unique index for each row..
+            index (str, optional): The field to be used as the unique index for each row.
+            options (Dict, optional): The options for the tabulator table.
         """
 
         def is_special_dtype(dtype):
@@ -239,10 +241,8 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         columns = [{"title": col, "field": col} for col in df.columns]
 
-        options = {
-            "data": df.to_dict(orient="records"),
-            "columns": columns,
-        }
+        options = options or {}
+        options.update({"data": df.to_dict(orient="records"), "columns": columns})
 
         if index is not None:
             options["index"] = index
