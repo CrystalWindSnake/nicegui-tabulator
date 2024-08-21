@@ -17,14 +17,18 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
     def __init__(
         self,
         options: Dict,
+        row_key: str = "id",
     ) -> None:
         """Create a new tabulator table.
 
         Args:
             options (Dict): The options for the tabulator table.
+            row_key (str, optional): The field to be used as the unique index for each row. Defaults to "id".
         """
         super().__init__()
         self.__deferred_task = DeferredTask()
+
+        options.update(index=row_key)
 
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
@@ -286,7 +290,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 if not data:
                     return
 
-                row = data[row_index - 1]
+                row = data[row_index]
 
                 class_name = f"ng-cell-slot-{field}-{row_index}"
                 with teleport(f"#{id} .{class_name}") as tp:
@@ -307,15 +311,20 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 {
                     ":formatter": rf"""
         function(cell, formatterParams, onRendered){{
+        
+            const row = cell.getRow();
+            const table = row.getTable();
+            const field = cell.getField();
+
             onRendered(function(){{
-                const row = cell.getRow();
-                const field = cell.getField();
                 const rowNumber = row.getPosition();
-                const rowIndex = row.getIndex();
+                const rowIndexValue = row.getIndex();
+                const indexField = table.options.index;
+                const rowIndex = table.options.data.findIndex(r => r[indexField] === rowIndexValue);
                 const target = cell.getElement();
                 target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowIndex}} fit"></div>`
-                const table = getElement({self.id});
-                runMethod(table, 'updateCellSlot',[field,rowNumber,rowIndex]);
+                const tableObject = getElement({self.id});
+                runMethod(tableObject, 'updateCellSlot',[field,rowNumber,rowIndex]);
             }});
         }}
         """
