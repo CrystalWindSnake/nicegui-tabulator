@@ -496,6 +496,45 @@ def test_cell_slot_update_data_by_code(browser: BrowserManager, page_path: str):
     server_data_checker.expect_server_data(page)
 
 
+def test_cell_slot_with_pagination(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        tabledata = [
+            {"id": 1, "name": "name1", "age": "10"},
+            {"id": 2, "name": "name2", "age": "20"},
+            {"id": 3, "name": "target name in page2", "age": "30"},
+        ]
+
+        table_config = {
+            "data": tabledata,
+            "columns": [
+                {"title": "Name", "field": "name"},
+                {"title": "Age", "field": "age"},
+            ],
+            "pagination": True,
+            "paginationSize": 2,
+        }
+
+        table = tabulator(table_config).classes("target")
+
+        @table.add_cell_slot("name")
+        def _(props: CellSlotProps):
+            ui.label(props.value)
+
+        lbl_opts = ui.label("").classes("table-options")
+
+        def update_options_to_label():
+            lbl_opts.set_text(str(table._props["options"]["data"][0]))
+
+        ui.button("update options to label", on_click=update_options_to_label)
+
+    page = browser.open(page_path)
+    table_locator = page.locator(".target")
+
+    page.get_by_label("Show Page 2").click()
+    expect(table_locator).to_contain_text("target name in page2")
+
+
 def test_set_data(browser: BrowserManager, page_path: str):
     server_data_checker = ServerDataChecker()
 

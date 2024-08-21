@@ -35,7 +35,8 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         def on_update_cell_slot(e):
             field = e.args["field"]
             row_number = e.args["rowNumber"]
-            key = (field, row_number)
+            row_index = e.args["rowIndex"]
+            key = (field, row_index)
 
             if field not in self._cell_slot_map:
                 return
@@ -46,7 +47,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 tp.delete()
 
             fn = self._cell_slot_map[field]
-            tp = fn(row_number)
+            tp = fn(row_number, row_index)
             if tp:
                 self._teleport_slots_cache[key] = tp
 
@@ -279,21 +280,22 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         id = f"c{self.id}"
 
         def wrapper(build_fn: Callable[[CellSlotProps], None]):
-            def fn(row_number: int):
+            def fn(row_number: int, row_index: int):
                 options = self._props["options"]
                 data = options.get("data", [])
                 if not data:
                     return
 
-                row = data[row_number - 1]
+                row = data[row_index - 1]
 
-                class_name = f"ng-cell-slot-{field}-{row_number}"
+                class_name = f"ng-cell-slot-{field}-{row_index}"
                 with teleport(f"#{id} .{class_name}") as tp:
                     cell_slot = CellSlotProps(
                         field=field,
                         value=row[field],
                         row=row,
                         row_number=row_number,
+                        row_index=row_index,
                         table=self,
                     )
                     build_fn(cell_slot)
@@ -309,10 +311,11 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 const row = cell.getRow();
                 const field = cell.getField();
                 const rowNumber = row.getPosition();
+                const rowIndex = row.getIndex();
                 const target = cell.getElement();
-                target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowNumber}} fit"></div>`
+                target.innerHTML = `<div class="ng-cell-slot-${{field}}-${{rowIndex}} fit"></div>`
                 const table = getElement({self.id});
-                runMethod(table, 'updateCellSlot',[field,rowNumber]);
+                runMethod(table, 'updateCellSlot',[field,rowNumber,rowIndex]);
             }});
         }}
         """
