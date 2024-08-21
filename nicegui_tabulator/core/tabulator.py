@@ -18,7 +18,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
     def __init__(
         self,
         options: Dict,
-        row_key: str = "id",
+        row_key: Optional[str] = "id",
     ) -> None:
         """Create a new tabulator table.
 
@@ -29,7 +29,8 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         super().__init__()
         self.__deferred_task = DeferredTask()
 
-        options.update(index=row_key)
+        if row_key:
+            options.update(index=row_key)
 
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
@@ -262,7 +263,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         options.update({"data": df.to_dict(orient="records"), "columns": columns})
 
-        return cls(options)
+        return cls(options, row_key=None)
 
     def add_cell_slot(
         self,
@@ -299,7 +300,6 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 data = options.get("data", [])
                 if not data:
                     return
-
                 row = data[row_index]
 
                 class_name = f"ng-cell-slot-{field}-{row_index}"
