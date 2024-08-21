@@ -6,6 +6,7 @@ from warnings import warn
 from .utils import DeferredTask
 from .teleport import teleport
 from .types import CellSlotProps, T_Row_Range_Lookup
+from . import utils
 
 try:
     import pandas as pd
@@ -209,7 +210,9 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
     def from_pandas(
         cls,
         df: "pd.DataFrame",
+        *,
         index: Optional[str] = None,
+        auto_index=False,
         options: Optional[Dict] = None,
     ):
         """Create a table from a Pandas DataFrame.
@@ -221,6 +224,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         Args:
             df (pd.DataFrame): The DataFrame to create the table from.
             index (str, optional): The field to be used as the unique index for each row.
+            auto_index (bool, optional): If `True` and the `index` parameter is `None`, a sequence number column will be automatically generated as the index.
             options (Dict, optional): The options for the tabulator table.
         """
 
@@ -244,13 +248,19 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
                 '`df.columns = ["_".join(col) for col in df.columns.values]`.'
             )
 
-        columns = [{"title": col, "field": col} for col in df.columns]
+        columns: List[Dict] = [{"title": col, "field": col} for col in df.columns]
 
         options = options or {}
-        options.update({"data": df.to_dict(orient="records"), "columns": columns})
 
         if index is not None:
             options["index"] = index
+        elif auto_index:
+            col_name = utils.generate_dataframe_unique_id_column_name()
+            df = df.assign(**{col_name: range(len(df))})
+            columns.insert(0, {"title": col_name, "field": col_name, "visible": False})
+            options["index"] = col_name
+
+        options.update({"data": df.to_dict(orient="records"), "columns": columns})
 
         return cls(options)
 
