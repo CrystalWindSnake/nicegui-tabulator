@@ -114,8 +114,8 @@ export default {
       this.table.updateColumnDefinition(field, definition);
     },
 
-    updateCellSlot(field, rowNumber) {
-      this.$emit('updateCellSlot', { field, rowNumber })
+    updateCellSlot(field, rowNumber, rowIndex) {
+      this.$emit('updateCellSlot', { field, rowNumber, rowIndex })
     },
 
     resetRowFormat(position) {

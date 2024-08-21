@@ -18,6 +18,8 @@ class CellSlotProps:
     """The row data."""
     row_number: int
     """The position(starting from 1) of the row in the table data."""
+    row_index: int
+    """The index of the row in the table data."""
     table: Tabulator = dc_field(init=True, repr=False)
     """The parent Tabulator instance."""
 
