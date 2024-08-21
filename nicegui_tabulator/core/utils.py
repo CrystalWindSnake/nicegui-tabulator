@@ -1,5 +1,6 @@
 from typing import Callable
 from nicegui import ui, Client as ng_client
+import uuid
 
 
 class DeferredTask:
@@ -27,3 +28,7 @@ class DeferredTask:
             task()
         else:
             self._tasks.append(task)
+
+
+def generate_dataframe_unique_id_column_name():
+    return f"__{uuid.uuid4().hex}"
