@@ -139,16 +139,15 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         ## Example Usage
 
-        ```python
-        table = Tabulator({...})
+        .. code-block:: python
+            table = Tabulator({...})
 
-        new_columns = [
-            {'title':"Name", 'field':"name"},
-            {'title':"Age", 'field':"age"},
-        ]
+            new_columns = [
+                {'title':"Name", 'field':"name"},
+                {'title':"Age", 'field':"age"},
+            ]
 
-        table.set_columns(new_columns)
-        ```
+            table.set_columns(new_columns)
 
         """
 
@@ -167,10 +166,11 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
             definition (Dict): The new column definition object for the column.
 
         ## Example Usage
-        ```python
-        table = Tabulator({...})
-        table.update_column_definition("name", {'title':"Updated Title"})
-        ```
+
+        .. code-block:: python
+            table = Tabulator({...})
+            table.update_column_definition("name", {'title':"Updated Title"})
+
         """
 
         @self.__deferred_task.register
@@ -196,10 +196,9 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         ## Example Usage
 
-        ```python
-        table = Tabulator({...})
-        table.add_column({'title':"Age", 'field':"age"}, True, "name")
-        ```
+        .. code-block:: python
+            table = Tabulator({...})
+            table.add_column({'title':"Age", 'field':"age"}, True, "name")
 
         """
 
@@ -281,15 +280,15 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
 
         ## Example Usage
 
-        ```python
-        from nicegui import ui
-        from nicegui_tabulator import tabulator,CellSlotProps
+        .. code-block:: python
+            from nicegui import ui
+            from nicegui_tabulator import tabulator,CellSlotProps
 
-        table = tabulator({...})
+            table = tabulator({...})
 
-        @table.add_cell_slot("name")
-        def name_cell(props: CellSlotProps):
-            ui.input(value=props.value, placeholder="Enter name")
+            @table.add_cell_slot("name")
+            def name_cell(props: CellSlotProps):
+                ui.input(value=props.value, placeholder="Enter name")
 
         """
         id = f"c{self.id}"
@@ -378,9 +377,7 @@ class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.mi
         Args:
             data (List[Dict]): The data to update the current data with.
 
-
         """
-
         self._update_data_on_server(data)
         self.run_table_method("updateData", data)
         return self
