@@ -1,6 +1,6 @@
 import { loadResource } from "../../static/utils/resources.js";
 import { convertDynamicProperties } from "../../static/utils/dynamic_properties.js";
-
+import 'tabulator'
 
 const completedEvents = new Set([
   'tableBuilding',
