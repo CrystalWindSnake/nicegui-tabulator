@@ -14,7 +14,9 @@ except ImportError:
     pass
 
 
-class Tabulator(Element, component="tabulator.js", libraries=["libs/tabulator.min.js"]):
+class Tabulator(
+    Element, component="tabulator.js", dependencies=["libs/tabulator.min.js"]
+):
     def __init__(
         self,
         options: Dict,
