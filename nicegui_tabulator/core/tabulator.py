@@ -122,13 +122,7 @@ class Tabulator(
             check_interval (float, optional): The interval at which to check if the method has completed. Defaults to 0.01.
 
         """
-        return self.run_method(
-            "run_table_method",
-            name,
-            *args,
-            timeout=timeout,
-            check_interval=check_interval,
-        )
+        return self.run_method("run_table_method", name, *args, timeout=timeout)
 
     def set_columns(self, columns: List[Dict]) -> None:
         """
