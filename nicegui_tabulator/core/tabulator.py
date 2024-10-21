@@ -501,3 +501,7 @@ class Tabulator(
         """
         self.sync_data_to_client()
         self.run_table_method("print", row_range_lookup, style, config)
+
+    async def get_selected_data(self) -> List[Dict]:
+        """Get the selected data from the table."""
+        return await self.run_table_method("getSelectedData")
