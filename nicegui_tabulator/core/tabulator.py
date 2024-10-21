@@ -4,7 +4,7 @@ from nicegui.element import Element
 from nicegui.awaitable_response import AwaitableResponse
 from warnings import warn
 from .utils import DeferredTask
-from .teleport import teleport
+from nicegui.elements.teleport import Teleport as teleport
 from .types import CellSlotProps, T_Row_Range_Lookup
 from . import utils
 
