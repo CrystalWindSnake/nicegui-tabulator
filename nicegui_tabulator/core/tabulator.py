@@ -63,6 +63,12 @@ class Tabulator(
 
         self.on("updateCellSlot", on_update_cell_slot)
 
+        def on_connected():
+            self.__deferred_task.flush()
+            self.__deferred_task.component_connected = True
+
+        self.on("connected", on_connected)
+
     @property
     def index_field(self):
         """Get the index field for the tabulator table.By default Tabulator will look for this value in the id field for the data."""

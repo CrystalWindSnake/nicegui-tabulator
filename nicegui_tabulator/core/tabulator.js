@@ -51,6 +51,13 @@ function extractEventArg(eventName, argsObject) {
   return result;
 }
 
+function onSocketConnect(fn) {
+  window.Vue.nextTick(() => {
+    const socket = window.socket;
+    socket.on("connect", fn);
+  });
+}
+
 export default {
   template: `<div></div>`,
   props: {
@@ -58,7 +65,7 @@ export default {
     resource_path: String,
   },
   async mounted() {
-    await this.$nextTick(); // NOTE: wait for window.path_prefix to be set
+    await new Promise((resolve) => setTimeout(resolve, 0)); // NOTE: wait for window.path_prefix to be set
     const hasNiceGuiTabulatorTheme = document.querySelector('link.nicegui-tabulator-theme') !== null;
     if (!hasNiceGuiTabulatorTheme) {
       await Promise.all([
@@ -74,6 +81,13 @@ export default {
         this.table.redraw();
       }, 800);
     });
+
+    // here we need to wait for socket connection before emitting events, because some events may not be triggered at page load
+    onSocketConnect(() => {
+      this.$emit('connected');
+    })
+
+    this.$emit('connected');
 
   },
 
