@@ -894,3 +894,24 @@ def test_clear_data(browser: BrowserManager, page_path: str):
     )
 
     server_data_checker.expect_server_data(page)
+
+
+def test_table_creation_and_method_call_after_page_load(
+    browser: BrowserManager, page_path: str
+):
+    @ui.page(page_path)
+    def _():
+        df = pd.DataFrame({"index": [1, 2]})
+
+        def build_table():
+            table = tabulator.from_pandas(df).style("font-size: 75%")
+            table.update_column_definition("index", {"title": "works"})
+
+        ui.button("build table", on_click=build_table).props("no-caps")
+
+    page = browser.open(page_path)
+
+    page.get_by_text("build table").click()
+
+    body_expect = expect(page.locator("body"))
+    body_expect.to_contain_text("works")
