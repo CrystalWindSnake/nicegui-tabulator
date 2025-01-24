@@ -354,6 +354,30 @@ def test_from_pandas(browser: BrowserManager, page_path: str):
     assert data[0] == ["Alice", "25", "blue", "\xa0"]
 
 
+def test_from_pandas_column_definition(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        df = pd.DataFrame(
+            {
+                "name": ["Alice", "Bob", "Charlie"],
+            }
+        )
+
+        def col_def(col_name: str):
+            return {
+                "title": f"new {col_name}",
+            }
+
+        tabulator.from_pandas(
+            df,
+            column_definition=col_def,
+        ).classes("target")
+
+    page = browser.open(page_path)
+    body_expect = expect(page.locator("body"))
+    body_expect.to_contain_text("new name")
+
+
 def test_problematic_datatypes(browser: BrowserManager, page_path: str):
     @ui.page(page_path)
     def _():
