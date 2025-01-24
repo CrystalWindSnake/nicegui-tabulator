@@ -216,6 +216,7 @@ class Tabulator(
         index: Optional[str] = None,
         auto_index=False,
         options: Optional[Dict] = None,
+        column_definition: Optional[Callable[[str], Dict]] = None,
     ):
         """Create a table from a Pandas DataFrame.
 
@@ -228,6 +229,7 @@ class Tabulator(
             index (str, optional): The field to be used as the unique index for each row.
             auto_index (bool, optional): If `True` and the `index` parameter is `None`, a sequence number column will be automatically generated as the index.
             options (Dict, optional): The options for the tabulator table.
+            column_definition (Callable[[str], Dict], optional): A function that takes a column name and returns a column definition object for that column.
         """
 
         def is_special_dtype(dtype):
@@ -250,7 +252,12 @@ class Tabulator(
                 '`df.columns = ["_".join(col) for col in df.columns.values]`.'
             )
 
-        columns: List[Dict] = [{"title": col, "field": col} for col in df.columns]
+        columns: List[Dict] = [
+            {"title": col, "field": col}
+            if column_definition is None
+            else {"field": col, **column_definition(col)}
+            for col in df.columns
+        ]
 
         options = options or {}
 
