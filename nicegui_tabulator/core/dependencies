@@ -4,7 +4,7 @@ from nicegui import ui
 LUXON_DEFAULT_SCRIPT_URL: Final[str] = "https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"
 
 
-def import_luxon_dependency(shared: Optional[bool] = None, script_url: str = LUXON_DEFAULT_SCRIPT_URL):
+def import_luxon(shared: Optional[bool] = None, script_url: str = LUXON_DEFAULT_SCRIPT_URL):
     """Inject Luxon into the page so Tabulator date/time features can work.
 
        Tabulator's date/time formatters and sorters require Luxon to be available in the
