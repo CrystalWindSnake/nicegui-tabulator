@@ -204,10 +204,10 @@ require **Luxon**. `nicegui-tabulator` does not bundle Luxon; enable it explicit
 
 ```python
 from nicegui import ui
-from nicegui_tabulator import tabulator, import_luxon_dependency
+from nicegui_tabulator import tabulator, import_luxon
 
 # Inject Luxon before creating tables that use date/time formatting/sorting
-import_luxon_dependency(shared=True)  # (app-wide)
+import_luxon(shared=True)  # (app-wide)
 
 tabledata = [
     {"id": 1, "name": "Oli Bob", "dob": "1982-05-14"},
