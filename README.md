@@ -195,3 +195,40 @@ def my_page():
     # use the theme only for this page
     use_theme('bootstrap4')
 ```
+
+
+### Dates & Times (Luxon)
+
+Tabulator’s date/time features (e.g. `formatter: "datetime"`, `sorter: "date"` or `sorter: "datetime"`)
+require **Luxon**. `nicegui-tabulator` does not bundle Luxon; enable it explicitly:
+
+```python
+from nicegui import ui
+from nicegui_tabulator import tabulator, import_luxon
+
+# Inject Luxon before creating tables that use date/time formatting/sorting
+import_luxon(shared=True)  # (app-wide)
+
+tabledata = [
+    {"id": 1, "name": "Oli Bob", "dob": "1982-05-14"},
+    {"id": 2, "name": "Mary May", "dob": "1999-01-31"},
+]
+
+table_config = {
+    "layout": "fitColumns",
+    "data": tabledata,
+    "columns": [
+        {"title": "Name", "field": "name"},
+        {
+            "title": "Date Of Birth",
+            "field": "dob",
+            "formatter": "datetime",
+            "formatterParams": {"inputFormat": "iso", "outputFormat": "dd/MM/yyyy"},
+            "sorter": "date",
+            "sorterParams": {"format": "iso"},
+        },
+    ],
+}
+
+tabulator(table_config)
+ui.run()
