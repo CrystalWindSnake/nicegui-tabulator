@@ -10,19 +10,48 @@ on:
 jobs:
   run-all-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9']
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.8'
-      - name: set up Poetry
-        uses: abatilo/actions-poetry@v2.0.0
+          enable-cache: true
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
         with:
-          poetry-version: "1.6.1"
-      - name: install dependencies
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ matrix.python-version }}-1.48.0
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ matrix.python-version }}-1.48.0-
+
+      # Prevent "man-db" trigger updates during apt installs, which can take a long time
+      - name: Remove man-db
+        run: sudo apt-get purge -y man-db
+        shell: bash
+
+      - name: Install Playwright
         run: |
-          set -x
-          poetry config virtualenvs.create false
-          poetry install
-          python -m playwright install 
-      - run: pytest tests/
+          # Install playwright dependencies if not cached
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then
+            uv run playwright install chromium --with-deps
+          fi
+        shell: bash
+
+      - name: Create uv virtual environment
+        run: uv python pin ${{ matrix.python-version }}
+        shell: bash
+
+      - name: Project deps
+        run: uv sync --dev --no-sources
+        shell: bash
+
+      - name: run test
+        timeout-minutes: 4
+        run: uv run pytest tests/
+        shell: bash  
