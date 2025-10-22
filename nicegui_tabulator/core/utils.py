@@ -15,10 +15,6 @@ class DeferredTask:
 
             self.flush()
 
-            # Avoid events becoming ineffective due to page refresh when sharing the client.
-            if not client.shared:
-                client.connect_handlers.remove(on_client_connect)  # type: ignore
-
         ui.context.client.on_connect(on_client_connect)
 
     def register(self, task: Callable[..., None]):
