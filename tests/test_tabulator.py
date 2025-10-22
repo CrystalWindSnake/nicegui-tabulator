@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 from nicegui import ui
 from .screen import BrowserManager
 from playwright.sync_api import expect, Locator, Page
-from nicegui_tabulator import tabulator, CellSlotProps
+from nicegui_tabulator import tabulator, CellSlotProps, import_luxon
 import pandas as pd
 
 
@@ -939,3 +939,36 @@ def test_table_creation_and_method_call_after_page_load(
 
     body_expect = expect(page.locator("body"))
     body_expect.to_contain_text("works")
+
+
+def test_import_luxon(browser: BrowserManager, page_path: str):
+    @ui.page(page_path)
+    def _():
+        import_luxon()
+
+        tabledata = [
+            {"id": 1, "dob": "1982-05-14"},
+            {"id": 2, "dob": "1999-01-31"},
+        ]
+
+        table_config = {
+            "data": tabledata,
+            "columns": [
+                {
+                    "title": "dob",
+                    "field": "dob",
+                    "formatter": "datetime",
+                    "formatterParams": {
+                        "inputFormat": "iso",
+                        "outputFormat": "dd/MM/yyyy",
+                    },
+                },
+            ],
+        }
+
+        tabulator(table_config).classes("target")
+
+    page = browser.open(page_path)
+    table = page.locator(".target")
+    expect(table).to_be_visible()
+    check_table_rows(table, expected_data=[["14/05/1982"], ["31/01/1999"]])
