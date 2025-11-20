@@ -352,18 +352,19 @@ class Tabulator(
 
         return wrapper
 
-    def set_data(self, data: List[Dict]):
+    def set_data(self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01):
         """set the data of the table.
 
         @see https://tabulator.info/docs/6.2/data#array
 
         Args:
             data (List[Dict]): The data to set for the table.
-
+            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
+            check_interval (float, optional): The interval at which to check if the method has completed. Defaults to 0.01.
 
         """
         self._set_data_on_server(data)
-        self.run_table_method("setData", data)
+        self.run_table_method("setData", data, timeout=timeout, check_interval=check_interval)
         return self
 
     def replace_data(self, data: List[Dict]):
@@ -378,17 +379,19 @@ class Tabulator(
         self.set_data(data)
         return self
 
-    def update_data(self, data: List[Dict]):
+    def update_data(self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01):
         """update the data of the table.
 
         @see https://tabulator.info/docs/6.2/update#alter-update
 
         Args:
             data (List[Dict]): The data to update the current data with.
+            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
+            check_interval (float, optional): The interval at which to check if the method has completed. Defaults to 0.01.
 
         """
         self._update_data_on_server(data)
-        self.run_table_method("updateData", data)
+        self.run_table_method("updateData", data, timeout=timeout, check_interval=check_interval)
         return self
 
     def add_data(
@@ -396,6 +399,9 @@ class Tabulator(
         data: List[Dict],
         at_top: Optional[bool] = None,
         index: Optional[Union[int, str]] = None,
+        *,
+        timeout: float = 1,
+        check_interval: float = 0.01,
     ):
         """add data to the table.
 
@@ -405,13 +411,15 @@ class Tabulator(
             data (List[Dict]): The data to add to the current data.
             at_top (Optional[bool], optional): determines whether the data is added to the top or bottom of the table. A value of true will add the data to the top of the table, a value of false will add the data to the bottom of the table. If the parameter is not set the data will be placed according to the addRowPos global option.
             index (Optional[Union[int, str]], optional): table row index. position the new rows next to the specified row (above or below based on the value of the second argument). This argument will take any of the standard row component look up options
+            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
+            check_interval (float, optional): The interval at which to check if the method has completed. Defaults to 0.01.
 
         """
         self._add_data_on_server(data, at_top, index)
-        self.run_table_method("addData", data, at_top, index)
+        self.run_table_method("addData", data, at_top, index, timeout=timeout, check_interval=check_interval)
         return self
 
-    def update_or_add_data(self, data: List[Dict]):
+    def update_or_add_data(self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01):
         """update or add data to the table.
         If the data you are passing to the table contains a mix of existing rows to be updated and new rows to be added then you can call the updateOrAddData function. This will check each row object provided and update the existing row if available, or else create a new row with the data.
 
@@ -419,20 +427,26 @@ class Tabulator(
 
         Args:
             data (List[Dict]): The data to update or add to the current data.
+            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
+            check_interval (float, optional): The interval at which to check if the method has completed. Defaults to 0.01.
 
         """
         self._update_or_add_data_on_server(data)
-        self.run_table_method("updateOrAddData", data)
+        self.run_table_method("updateOrAddData", data, timeout=timeout, check_interval=check_interval)
         return self
 
-    def clear_data(self):
+    def clear_data(self, *, timeout: float = 1, check_interval: float = 0.01):
         """clear the data of the table.
 
         @see https://tabulator.info/docs/6.2/update#alter-empty
 
+        Args:
+            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
+            check_interval (float, optional): The interval at which to check if the method has completed. Defaults to 0.01.
+
         """
         self._set_data_on_server([])
-        self.run_table_method("clearData")
+        self.run_table_method("clearData", timeout=timeout, check_interval=check_interval)
         return self
 
     def sync_data_to_client(self):
@@ -515,6 +529,10 @@ class Tabulator(
         self.sync_data_to_client()
         self.run_table_method("print", row_range_lookup, style, config)
 
-    async def get_selected_data(self) -> List[Dict]:
+    async def get_selected_data(
+        self, *, timeout: float = 1, check_interval: float = 0.01
+    ) -> List[Dict]:
         """Get the selected data from the table."""
-        return await self.run_table_method("getSelectedData")
+        return await self.run_table_method(
+            "getSelectedData", timeout=timeout, check_interval=check_interval
+        )
