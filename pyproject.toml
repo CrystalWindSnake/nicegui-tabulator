@@ -1,6 +1,6 @@
 [project]
 name = "nicegui-tabulator"
-version = "0.2.3"
+version = "0.3.0"
 description = "This is a Python package that provides a simple way to create tables using the Tabulator library. It is built on top of the NiceGUI library."
 keywords = ["ui", "gui", "web", "NiceGUI", "table", "Tabulator"]
 license = "MIT"
