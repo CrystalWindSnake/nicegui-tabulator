@@ -1,11 +1,15 @@
-from typing import Callable
+from typing import Union, Callable
 from nicegui import ui, Client as ng_client
+from nicegui.awaitable_response import AwaitableResponse
+import asyncio
 import uuid
+
+_TTask = Union[Callable[..., None], Callable[..., AwaitableResponse]]
 
 
 class DeferredTask:
     def __init__(self):
-        self._tasks = []
+        self._tasks: list[_TTask] = []
         self.component_connected = False
 
         async def on_client_connect(
@@ -17,7 +21,7 @@ class DeferredTask:
 
         ui.context.client.on_connect(on_client_connect)
 
-    def register(self, task: Callable[..., None]):
+    def register(self, task: _TTask):
         if ui.context.client.has_socket_connection and self.component_connected:
             task()
         else:
@@ -25,9 +29,14 @@ class DeferredTask:
 
     def flush(self):
         for task in self._tasks:
-            task()
+            self._execute_task(task)
 
         self._tasks.clear()
+
+    def _execute_task(self, task):
+        result = task()
+        if asyncio.iscoroutine(result):
+            asyncio.create_task(result)
 
 
 def generate_dataframe_unique_id_column_name():
