@@ -16,13 +16,22 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest~=8.3.5",
-    "playwright==1.48.0",
-    "pytest-playwright~=0.7",
+    {include-group = "test"},
+    {include-group = "playwright"},
+    {include-group = "lint"},
+]
+
+test = [
+    "pytest>=8.3.5",
     "pandas",
     "numpy",
-
 ]
+
+playwright = [
+    "playwright==1.57.0",
+    "pytest-playwright>=0.7.1",
+]
+
 git = [
     "pre-commit>=3.5.0",
 ]
