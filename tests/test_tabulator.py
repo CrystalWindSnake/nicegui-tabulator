@@ -79,7 +79,7 @@ class ServerDataChecker:
         server = page.locator(f".{self.server_classes}")
         client = page.locator(f".{self.client_classes}")
         page.locator(f".{self.show_client_data_btn_class}").click()
-        expect(server).to_contain_text(client.inner_text())
+        expect(client).to_contain_text(server.inner_text())
 
 
 def test_base(browser: BrowserManager, page_path: str):
@@ -682,24 +682,26 @@ def test_add_data_with_at_top(browser: BrowserManager, page_path: str):
 
         label_server_data = server_data_checker.create_elements(table)
 
+        async def add_data_at_top():
+            await table.add_data(
+                [{"id": 3, "name": "new-bar1", "age": "99"}], at_top=True
+            )
+            label_server_data.set_text(str(table.data))
+
+        async def add_data_at_bottom():
+            await table.add_data(
+                [{"id": 4, "name": "new-bar2", "age": "99"}], at_top=False
+            )
+            label_server_data.set_text(str(table.data))
+
         ui.button(
             "add data at top",
-            on_click=lambda: (
-                table.add_data(
-                    [{"id": 3, "name": "new-bar1", "age": "99"}], at_top=True
-                ),
-                label_server_data.set_text(str(table.data)),
-            ),
+            on_click=add_data_at_top,
         ).classes("at-top")
 
         ui.button(
             "add data at bottom",
-            on_click=lambda: (
-                table.add_data(
-                    [{"id": 4, "name": "new-bar2", "age": "99"}], at_top=False
-                ),
-                label_server_data.set_text(str(table.data)),
-            ),
+            on_click=add_data_at_bottom,
         ).classes("at-bottom")
 
     page = browser.open(page_path)
@@ -723,6 +725,7 @@ def test_add_data_with_at_top(browser: BrowserManager, page_path: str):
         ],
     )
 
+    # page.pause()
     server_data_checker.expect_server_data(page)
 
 

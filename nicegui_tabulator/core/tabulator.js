@@ -115,7 +115,8 @@ export default {
         name = name.slice(1);
         args = args.map((arg) => new Function(`return (${arg})`)());
       }
-      return runMethod(this.table, name, args);
+      const result = runMethod(this.table, name, args);
+      return result instanceof Promise ? null : result;
     },
 
     setColumns(columns) {

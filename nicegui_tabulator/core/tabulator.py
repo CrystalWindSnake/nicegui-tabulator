@@ -155,7 +155,7 @@ class Tabulator(
 
         @self.__deferred_task.register
         def _():
-            self.run_method("setColumns", columns)
+            return self.run_method("setColumns", columns)
 
     def update_column_definition(self, field: str, definition: Dict) -> None:
         """
@@ -206,7 +206,7 @@ class Tabulator(
 
         @self.__deferred_task.register
         def _():
-            self.run_table_method("addColumn", definition, before, position)
+            return self.run_table_method("addColumn", definition, before, position)
 
     @classmethod
     def from_pandas(
@@ -366,10 +366,9 @@ class Tabulator(
 
         """
         self._set_data_on_server(data)
-        self.run_table_method(
+        return self.run_table_method(
             "setData", data, timeout=timeout, check_interval=check_interval
         )
-        return self
 
     def replace_data(self, data: List[Dict]):
         """replace the data of the table.
@@ -380,8 +379,7 @@ class Tabulator(
             data (List[Dict]): The data to replace the current data with.
 
         """
-        self.set_data(data)
-        return self
+        return self.set_data(data)
 
     def update_data(
         self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01
@@ -397,10 +395,9 @@ class Tabulator(
 
         """
         self._update_data_on_server(data)
-        self.run_table_method(
+        return self.run_table_method(
             "updateData", data, timeout=timeout, check_interval=check_interval
         )
-        return self
 
     def add_data(
         self,
@@ -424,7 +421,7 @@ class Tabulator(
 
         """
         self._add_data_on_server(data, at_top, index)
-        self.run_table_method(
+        return self.run_table_method(
             "addData",
             data,
             at_top,
@@ -432,7 +429,6 @@ class Tabulator(
             timeout=timeout,
             check_interval=check_interval,
         )
-        return self
 
     def update_or_add_data(
         self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01
@@ -449,10 +445,9 @@ class Tabulator(
 
         """
         self._update_or_add_data_on_server(data)
-        self.run_table_method(
+        return self.run_table_method(
             "updateOrAddData", data, timeout=timeout, check_interval=check_interval
         )
-        return self
 
     def clear_data(self, *, timeout: float = 1, check_interval: float = 0.01):
         """clear the data of the table.
@@ -465,18 +460,16 @@ class Tabulator(
 
         """
         self._set_data_on_server([])
-        self.run_table_method(
+        return self.run_table_method(
             "clearData", timeout=timeout, check_interval=check_interval
         )
-        return self
 
     def sync_data_to_client(self):
         """sync server data to the client.
 
         @see https://github.com/CrystalWindSnake/nicegui-tabulator/tree/main?tab=readme-ov-file##cell-slot
         """
-        self.set_data(self._props["options"]["data"])
-        return self
+        return self.set_data(self._props["options"]["data"])
 
     def _add_data_on_server(
         self,
@@ -548,7 +541,7 @@ class Tabulator(
             config (Optional[Dict], optional): An object that can be used to override the object set on the printConfig option. Defaults to None.
         """
         self.sync_data_to_client()
-        self.run_table_method("print", row_range_lookup, style, config)
+        return self.run_table_method("print", row_range_lookup, style, config)
 
     async def get_selected_data(
         self, *, timeout: float = 1, check_interval: float = 0.01
