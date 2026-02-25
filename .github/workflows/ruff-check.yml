@@ -1,0 +1,44 @@
+name: Ruff Code Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  RUFF_CONFIG_FILE: "pyproject.toml"
+
+jobs:
+  ruff-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (with lint group)
+        run: uv sync --only-group lint
+
+      - name: Run Ruff Linting (Check Code Quality)
+        run: |
+          if [ -n "${{ env.RUFF_CONFIG_FILE }}" ]; then
+            uvx ruff check . --config ${{ env.RUFF_CONFIG_FILE }}
+          else
+            uvx ruff check .
+          fi
+
+      - name: Run Ruff Formatting Check
+        run: |
+          if [ -n "${{ env.RUFF_CONFIG_FILE }}" ]; then
+            uvx ruff format . --check --config ${{ env.RUFF_CONFIG_FILE }}
+          else
+            uvx ruff format . --check
+          fi

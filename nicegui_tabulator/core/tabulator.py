@@ -352,7 +352,9 @@ class Tabulator(
 
         return wrapper
 
-    def set_data(self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01):
+    def set_data(
+        self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01
+    ):
         """set the data of the table.
 
         @see https://tabulator.info/docs/6.2/data#array
@@ -364,7 +366,9 @@ class Tabulator(
 
         """
         self._set_data_on_server(data)
-        self.run_table_method("setData", data, timeout=timeout, check_interval=check_interval)
+        self.run_table_method(
+            "setData", data, timeout=timeout, check_interval=check_interval
+        )
         return self
 
     def replace_data(self, data: List[Dict]):
@@ -379,7 +383,9 @@ class Tabulator(
         self.set_data(data)
         return self
 
-    def update_data(self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01):
+    def update_data(
+        self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01
+    ):
         """update the data of the table.
 
         @see https://tabulator.info/docs/6.2/update#alter-update
@@ -391,7 +397,9 @@ class Tabulator(
 
         """
         self._update_data_on_server(data)
-        self.run_table_method("updateData", data, timeout=timeout, check_interval=check_interval)
+        self.run_table_method(
+            "updateData", data, timeout=timeout, check_interval=check_interval
+        )
         return self
 
     def add_data(
@@ -416,10 +424,19 @@ class Tabulator(
 
         """
         self._add_data_on_server(data, at_top, index)
-        self.run_table_method("addData", data, at_top, index, timeout=timeout, check_interval=check_interval)
+        self.run_table_method(
+            "addData",
+            data,
+            at_top,
+            index,
+            timeout=timeout,
+            check_interval=check_interval,
+        )
         return self
 
-    def update_or_add_data(self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01):
+    def update_or_add_data(
+        self, data: List[Dict], *, timeout: float = 1, check_interval: float = 0.01
+    ):
         """update or add data to the table.
         If the data you are passing to the table contains a mix of existing rows to be updated and new rows to be added then you can call the updateOrAddData function. This will check each row object provided and update the existing row if available, or else create a new row with the data.
 
@@ -432,7 +449,9 @@ class Tabulator(
 
         """
         self._update_or_add_data_on_server(data)
-        self.run_table_method("updateOrAddData", data, timeout=timeout, check_interval=check_interval)
+        self.run_table_method(
+            "updateOrAddData", data, timeout=timeout, check_interval=check_interval
+        )
         return self
 
     def clear_data(self, *, timeout: float = 1, check_interval: float = 0.01):
@@ -446,7 +465,9 @@ class Tabulator(
 
         """
         self._set_data_on_server([])
-        self.run_table_method("clearData", timeout=timeout, check_interval=check_interval)
+        self.run_table_method(
+            "clearData", timeout=timeout, check_interval=check_interval
+        )
         return self
 
     def sync_data_to_client(self):
