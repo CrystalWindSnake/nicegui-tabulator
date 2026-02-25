@@ -8,7 +8,7 @@ columns = [{"title": f"col{i}", "field": f"col{i}"} for i in range(30)]
 columns[0]["frozen"] = True  # type: ignore
 
 tabledata = [
-    {"id": i + 1, **{col["field"]: f"row{i+1}-{col['field']}" for col in columns}}
+    {"id": i + 1, **{col["field"]: f"row{i + 1}-{col['field']}" for col in columns}}
     for i in range(100)
 ]
 
