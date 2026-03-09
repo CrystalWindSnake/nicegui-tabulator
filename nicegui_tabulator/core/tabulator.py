@@ -368,17 +368,6 @@ class Tabulator(
         self._set_data_on_server(data)
         return self.run_table_method("setData", data, timeout=timeout)
 
-    def replace_data(self, data: list[dict]) -> AwaitableResponse:
-        """replace the data of the table.
-
-        @see https://tabulator.info/docs/6.2/update#alter-replace
-
-        Args:
-            data (list[dict]): The data to replace the current data with.
-
-        """
-        return self.set_data(data)
-
     def update_data(self, data: list[dict], *, timeout: float = 1) -> AwaitableResponse:
         """update the data of the table.
 
@@ -526,13 +515,13 @@ class Tabulator(
         return self.run_table_method("print", row_range_lookup, style, config)
 
     def delete_rows(
-        self, rows_indexes: list[Any], timeout: float = 30
+        self, rows_indexes: list[Any], timeout: float = 1
     ) -> AwaitableResponse:
         """Delete rows from the table by their index values.
 
         Args:
             rows_indexes (list[Any]): The list of row index values to delete.
-            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 30.
+            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
 
         """
         self._delete_rows_on_server(rows_indexes)
@@ -546,11 +535,11 @@ class Tabulator(
         ]
         self._set_data_on_server(data=new_data)
 
-    async def get_data(self, timeout: float = 30) -> list[dict[str, Any]]:
+    async def get_data(self, timeout: float = 1) -> list[dict[str, Any]]:
         """Get the data from the table.
 
         Args:
-            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 30.
+            timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
 
         """
         return await self.run_table_method("getData", timeout=timeout)
