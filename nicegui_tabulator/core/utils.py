@@ -1,10 +1,13 @@
-from typing import Union, Callable
-from nicegui import ui, Client as ng_client
-from nicegui.awaitable_response import AwaitableResponse
+from __future__ import annotations
+
+from typing import Callable
 import asyncio
 import uuid
 
-_TTask = Union[Callable[..., None], Callable[..., AwaitableResponse]]
+from nicegui import ui, Client as ng_client
+from nicegui.awaitable_response import AwaitableResponse
+
+_TTask = Callable[..., None] | Callable[..., AwaitableResponse]
 
 
 class DeferredTask:
@@ -33,11 +36,11 @@ class DeferredTask:
 
         self._tasks.clear()
 
-    def _execute_task(self, task):
+    def _execute_task(self, task: _TTask) -> None:
         result = task()
         if asyncio.iscoroutine(result):
             asyncio.create_task(result)
 
 
-def generate_dataframe_unique_id_column_name():
+def generate_dataframe_unique_id_column_name() -> str:
     return f"__{uuid.uuid4().hex}"

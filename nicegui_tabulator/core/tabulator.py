@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from nicegui.element import Element
-from nicegui.awaitable_response import AwaitableResponse
+from typing import Any, Callable
 from warnings import warn
-from .utils import DeferredTask
+
+from nicegui.awaitable_response import AwaitableResponse
+from nicegui.element import Element
 from nicegui.elements.teleport import Teleport as teleport
-from .types import CellSlotProps, T_Row_Range_Lookup
+
 from . import utils
+from .types import CellSlotProps, T_Row_Range_Lookup
+from .utils import DeferredTask
 
 try:
     import pandas as pd
@@ -19,13 +23,13 @@ class Tabulator(
 ):
     def __init__(
         self,
-        options: Dict,
-        row_key: Optional[str] = "id",
+        options: dict,
+        row_key: str | None = "id",
     ) -> None:
         """Create a new tabulator table.
 
         Args:
-            options (Dict): The options for the tabulator table.
+            options (dict): The options for the tabulator table.
             row_key (str, optional): The field to be used as the unique index for each row. Defaults to "id".
         """
         super().__init__()
@@ -37,8 +41,8 @@ class Tabulator(
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
 
-        self._cell_slot_map: Dict[str, Callable] = {}
-        self._teleport_slots_cache: Dict[Tuple[str, int], teleport] = {}
+        self._cell_slot_map: dict[str, Callable] = {}
+        self._teleport_slots_cache: dict[tuple[str, int], teleport] = {}
 
         def on_update_cell_slot(e):
             field = e.args["field"]
@@ -70,12 +74,12 @@ class Tabulator(
         self.on("connected", on_connected)
 
     @property
-    def index_field(self):
+    def index_field(self) -> str:
         """Get the index field for the tabulator table.By default Tabulator will look for this value in the id field for the data."""
         return self._props["options"].get("index", "id")
 
     @property
-    def data(self):
+    def data(self) -> list[dict]:
         """Get or set the data for the tabulator table."""
         if "data" not in self._props["options"]:
             self._props["options"]["data"] = []
@@ -129,14 +133,14 @@ class Tabulator(
         """
         return self.run_method("run_table_method", name, *args, timeout=timeout)
 
-    def set_columns(self, columns: List[Dict]) -> None:
+    def set_columns(self, columns: list[dict]) -> None:
         """
         To replace the current column definitions for all columns in a table.
 
         @see https://tabulator.info/docs/6.2/columns#replace
 
         Args:
-            columns (List[Dict]): The list of column definition objects for the table.
+            columns (list[dict]): The list of column definition objects for the table.
 
         ## Example Usage
 
@@ -156,7 +160,7 @@ class Tabulator(
         def _():
             return self.run_method("setColumns", columns)
 
-    def update_column_definition(self, field: str, definition: Dict) -> None:
+    def update_column_definition(self, field: str, definition: dict) -> None:
         """
         Update an existing column definition.
 
@@ -164,7 +168,7 @@ class Tabulator(
 
         Args:
             field (str): The field name of the column you want to update.
-            definition (Dict): The new column definition object for the column.
+            definition (dict): The new column definition object for the column.
 
         ## Example Usage
 
@@ -180,9 +184,9 @@ class Tabulator(
 
     def add_column(
         self,
-        definition: Dict,
-        before: Optional[bool] = None,
-        position: Optional[str] = None,
+        definition: dict,
+        before: bool | None = None,
+        position: str | None = None,
     ) -> None:
         """
         Add a column to the table.
@@ -191,9 +195,9 @@ class Tabulator(
 
 
         Args:
-            definition (Dict): The column definition object for the column you want to add.
-            before (Optional[bool], optional): Determines how to position the new column. A value of true will insert the column to the left of existing columns, a value of false will insert it to the right. If a Position argument is supplied then this will determine whether the new colum is inserted before or after this column.
-            position (Optional[str], optional): The field to insert the new column next to, this can be any of the standard column component look up options.
+            definition (dict): The column definition object for the column you want to add.
+            before (bool | None, optional): Determines how to position the new column. A value of true will insert the column to the left of existing columns, a value of false will insert it to the right. If a Position argument is supplied then this will determine whether the new colum is inserted before or after this column.
+            position (str | None, optional): The field to insert the new column next to, this can be any of the standard column component look up options.
 
         ## Example Usage
 
@@ -212,10 +216,10 @@ class Tabulator(
         cls,
         df: "pd.DataFrame",
         *,
-        index: Optional[str] = None,
+        index: str | None = None,
         auto_index=False,
-        options: Optional[Dict] = None,
-        column_definition: Optional[Callable[[str], Dict]] = None,
+        options: dict | None = None,
+        column_definition: Callable[[str], dict] | None = None,
     ):
         """Create a table from a Pandas DataFrame.
 
@@ -227,8 +231,8 @@ class Tabulator(
             df (pd.DataFrame): The DataFrame to create the table from.
             index (str, optional): The field to be used as the unique index for each row.
             auto_index (bool, optional): If `True` and the `index` parameter is `None`, a sequence number column will be automatically generated as the index.
-            options (Dict, optional): The options for the tabulator table.
-            column_definition (Callable[[str], Dict], optional): A function that takes a column name and returns a column definition object for that column.
+            options (dict, optional): The options for the tabulator table.
+            column_definition (Callable[[str], dict], optional): A function that takes a column name and returns a column definition object for that column.
         """
 
         def is_special_dtype(dtype):
@@ -251,7 +255,7 @@ class Tabulator(
                 '`df.columns = ["_".join(col) for col in df.columns.values]`.'
             )
 
-        columns: List[Dict] = [
+        columns: list[dict] = [
             {"title": col, "field": col}
             if column_definition is None
             else {"field": col, **column_definition(col)}
@@ -351,37 +355,37 @@ class Tabulator(
 
         return wrapper
 
-    def set_data(self, data: List[Dict], *, timeout: float = 1) -> AwaitableResponse:
+    def set_data(self, data: list[dict], *, timeout: float = 1) -> AwaitableResponse:
         """set the data of the table.
 
         @see https://tabulator.info/docs/6.2/data#array
 
         Args:
-            data (List[Dict]): The data to set for the table.
+            data (list[dict]): The data to set for the table.
             timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
 
         """
         self._set_data_on_server(data)
         return self.run_table_method("setData", data, timeout=timeout)
 
-    def replace_data(self, data: List[Dict]) -> AwaitableResponse:
+    def replace_data(self, data: list[dict]) -> AwaitableResponse:
         """replace the data of the table.
 
         @see https://tabulator.info/docs/6.2/update#alter-replace
 
         Args:
-            data (List[Dict]): The data to replace the current data with.
+            data (list[dict]): The data to replace the current data with.
 
         """
         return self.set_data(data)
 
-    def update_data(self, data: List[Dict], *, timeout: float = 1) -> AwaitableResponse:
+    def update_data(self, data: list[dict], *, timeout: float = 1) -> AwaitableResponse:
         """update the data of the table.
 
         @see https://tabulator.info/docs/6.2/update#alter-update
 
         Args:
-            data (List[Dict]): The data to update the current data with.
+            data (list[dict]): The data to update the current data with.
             timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
 
         """
@@ -390,9 +394,9 @@ class Tabulator(
 
     def add_data(
         self,
-        data: List[Dict],
-        at_top: Optional[bool] = None,
-        index: Optional[Union[int, str]] = None,
+        data: list[dict],
+        at_top: bool | None = None,
+        index: int | str | None = None,
         *,
         timeout: float = 1,
     ) -> AwaitableResponse:
@@ -401,9 +405,9 @@ class Tabulator(
         @see https://tabulator.info/docs/6.2/update#alter-add
 
         Args:
-            data (List[Dict]): The data to add to the current data.
-            at_top (Optional[bool], optional): determines whether the data is added to the top or bottom of the table. A value of true will add the data to the top of the table, a value of false will add the data to the bottom of the table. If the parameter is not set the data will be placed according to the addRowPos global option.
-            index (Optional[Union[int, str]], optional): table row index. position the new rows next to the specified row (above or below based on the value of the second argument). This argument will take any of the standard row component look up options
+            data (list[dict]): The data to add to the current data.
+            at_top (bool | None, optional): determines whether the data is added to the top or bottom of the table. A value of true will add the data to the top of the table, a value of false will add the data to the bottom of the table. If the parameter is not set the data will be placed according to the addRowPos global option.
+            index (int | str | None, optional): table row index. position the new rows next to the specified row (above or below based on the value of the second argument). This argument will take any of the standard row component look up options
             timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
 
         """
@@ -417,7 +421,7 @@ class Tabulator(
         )
 
     def update_or_add_data(
-        self, data: List[Dict], *, timeout: float = 1
+        self, data: list[dict], *, timeout: float = 1
     ) -> AwaitableResponse:
         """update or add data to the table.
         If the data you are passing to the table contains a mix of existing rows to be updated and new rows to be added then you can call the updateOrAddData function. This will check each row object provided and update the existing row if available, or else create a new row with the data.
@@ -425,7 +429,7 @@ class Tabulator(
         @see https://tabulator.info/docs/6.2/update#alter-add
 
         Args:
-            data (List[Dict]): The data to update or add to the current data.
+            data (list[dict]): The data to update or add to the current data.
             timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 1.
 
         """
@@ -453,9 +457,9 @@ class Tabulator(
 
     def _add_data_on_server(
         self,
-        data: List[Dict],
-        at_top: Optional[bool] = None,
-        index: Optional[Union[int, str]] = None,
+        data: list[dict],
+        at_top: bool | None = None,
+        index: int | str | None = None,
     ):
         at_top = (
             at_top
@@ -477,12 +481,10 @@ class Tabulator(
 
         self._set_data_on_server(self.data[:row_index] + data + self.data[row_index:])
 
-    def _set_data_on_server(self, data: List[Dict]):
-        if "data" not in self._props["options"]:
-            self._props["options"]["data"] = None
+    def _set_data_on_server(self, data: list[dict]) -> None:
         self._props["options"]["data"] = data[:]
 
-    def _update_data_on_server(self, data: List[Dict]):
+    def _update_data_on_server(self, data: list[dict]) -> None:
         index_field = self.index_field
         update_dict = {record[index_field]: record for record in data}
 
@@ -496,7 +498,7 @@ class Tabulator(
             if update_record:
                 row.update(update_record)
 
-    def _update_or_add_data_on_server(self, data: List[Dict]):
+    def _update_or_add_data_on_server(self, data: list[dict]) -> None:
         index_field = self.index_field
         update_dict = {item[index_field]: item for item in data}
 
@@ -509,34 +511,34 @@ class Tabulator(
     def print(
         self,
         *,
-        row_range_lookup: Optional[T_Row_Range_Lookup] = None,
-        style: Optional[bool] = True,
-        config: Optional[Dict] = None,
+        row_range_lookup: T_Row_Range_Lookup | None = None,
+        style: bool | None = True,
+        config: dict | None = None,
     ) -> AwaitableResponse:
         """A full page printing of the contents of the table without any other elements from the page.
 
         Args:
-            row_range_lookup (Optional[T_Row_Range_Lookup], optional): Determins which rows are shown in the printed table, if no value is set it will use the value set in the printRowRange option.
-            style (Optional[bool], optional): Determines if the output of the function should be styled to match the table (true) or be a blank html table (false), if you leave this argument out it will take the value of the printStyled option. Defaults to True.
-            config (Optional[Dict], optional): An object that can be used to override the object set on the printConfig option. Defaults to None.
+            row_range_lookup (T_Row_Range_Lookup | None, optional): Determins which rows are shown in the printed table, if no value is set it will use the value set in the printRowRange option.
+            style (bool | None, optional): Determines if the output of the function should be styled to match the table (true) or be a blank html table (false), if you leave this argument out it will take the value of the printStyled option. Defaults to True.
+            config (dict | None, optional): An object that can be used to override the object set on the printConfig option. Defaults to None.
         """
         self.sync_data_to_client()
         return self.run_table_method("print", row_range_lookup, style, config)
 
     def delete_rows(
-        self, rows_indexes: List[Any], timeout: float = 30
+        self, rows_indexes: list[Any], timeout: float = 30
     ) -> AwaitableResponse:
         """Delete rows from the table by their index values.
 
         Args:
-            rows_indexes (List[Any]): The list of row index values to delete.
+            rows_indexes (list[Any]): The list of row index values to delete.
             timeout (float, optional): The maximum time to wait for the method to complete. Defaults to 30.
 
         """
         self._delete_rows_on_server(rows_indexes)
         return self.run_table_method("deleteRow", rows_indexes, timeout=timeout)
 
-    def _delete_rows_on_server(self, rows_indexes: List[Any]) -> None:
+    def _delete_rows_on_server(self, rows_indexes: list[Any]) -> None:
         index_field = self.index_field
         set_indexes = set(rows_indexes)
         new_data = [
@@ -544,7 +546,7 @@ class Tabulator(
         ]
         self._set_data_on_server(data=new_data)
 
-    async def get_data(self, timeout: float = 30) -> List[Dict[str, Any]]:
+    async def get_data(self, timeout: float = 30) -> list[dict[str, Any]]:
         """Get the data from the table.
 
         Args:
@@ -553,6 +555,6 @@ class Tabulator(
         """
         return await self.run_table_method("getData", timeout=timeout)
 
-    async def get_selected_data(self, *, timeout: float = 1) -> List[Dict]:
+    async def get_selected_data(self, *, timeout: float = 1) -> list[dict]:
         """Get the selected data from the table."""
         return await self.run_table_method("getSelectedData", timeout=timeout)

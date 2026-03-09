@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 from nicegui import ui, app, Client
 
 _ASSETS_DIR = Path(__file__).parent / "libs"
@@ -28,12 +28,12 @@ _remove_old_theme_js = """
 """
 
 
-def use_theme(theme_name: _T_THEME_NAME, shared: Optional[bool] = None) -> None:
+def use_theme(theme_name: _T_THEME_NAME, shared: bool | None = None) -> None:
     """Use a tabulator theme.
 
     Args:
         theme_name (_T_THEME_NAME):  name of the theme to use.
-        shared (Optional[bool], optional):  Whether to use the theme for all clients or only the current client.
+        shared (bool | None, optional):  Whether to use the theme for all clients or only the current client.
             `None`(default): use the theme for all clients if there is no client context (e.g. at startup), otherwise use it only for the current client.
             `True`: use the theme for all clients.
             `False`: use the theme only for the current client.
