@@ -2,7 +2,6 @@ import threading
 import os
 from playwright.sync_api import Browser
 from nicegui import ui, app
-from nicegui.testing.general_fixtures import prepare_simulation
 from nicegui.server import Server
 
 PORT = 3392
@@ -28,7 +27,6 @@ class ServerManager:
 
     def start_server(self) -> None:
         """Start the webserver in a separate thread. This is the equivalent of `ui.run()` in a normal script."""
-        prepare_simulation()
         self.server_thread = threading.Thread(
             target=lambda: ui.run(**self.ui_run_kwargs)
         )
