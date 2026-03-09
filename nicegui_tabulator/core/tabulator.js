@@ -62,14 +62,14 @@ export default {
   template: `<div></div>`,
   props: {
     options: Object,
-    resource_path: String,
+    resourcePath: String,
   },
   async mounted() {
     await new Promise((resolve) => setTimeout(resolve, 0)); // NOTE: wait for window.path_prefix to be set
     const hasNiceGuiTabulatorTheme = document.querySelector('link.nicegui-tabulator-theme') !== null;
     if (!hasNiceGuiTabulatorTheme) {
       await Promise.all([
-        loadResource(window.path_prefix + `${this.resource_path}/tabulator.min.css`),
+        loadResource(window.path_prefix + `${this.resourcePath}/tabulator.min.css`),
       ]);
     }
 
