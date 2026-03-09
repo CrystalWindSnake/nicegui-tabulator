@@ -1321,7 +1321,7 @@ wheels = [
 
 [[package]]
 name = "nicegui-tabulator"
-version = "0.3.0"
+version = "0.3.1"
 source = { editable = "." }
 dependencies = [
     { name = "nicegui", version = "3.6.1", source = { registry = "https://mirrors.aliyun.com/pypi/simple" }, marker = "python_full_version < '3.10'" },
@@ -1365,7 +1365,7 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "nicegui", specifier = "~=3.0" }]
+requires-dist = [{ name = "nicegui", specifier = "~=3.5" }]
 
 [package.metadata.requires-dev]
 dev = [
