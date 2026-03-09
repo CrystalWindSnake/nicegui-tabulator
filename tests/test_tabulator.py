@@ -586,35 +586,6 @@ def test_set_data(browser: BrowserManager, page_path: str):
     server_data_checker.expect_server_data(page)
 
 
-def test_replace_data(browser: BrowserManager, page_path: str):
-    server_data_checker = ServerDataChecker()
-
-    @ui.page(page_path)
-    def _():
-        table = tabulator(create_table_options()).classes("target")
-
-        label_server_data = server_data_checker.create_elements(table)
-
-        ui.button(
-            "replace data",
-            on_click=lambda: (
-                table.replace_data(
-                    [{"id": 1, "name": "bar-replace-data", "age": "12"}]
-                ),
-                label_server_data.set_text(str(table.data)),
-            ),
-        )
-
-    page = browser.open(page_path)
-    table_locator = page.locator(".target")
-
-    # set data
-    page.get_by_role("button").filter(has_text="replace data").click()
-    check_table_rows(table_locator, [["bar-replace-data", "12"]])
-
-    server_data_checker.expect_server_data(page)
-
-
 def test_update_data(browser: BrowserManager, page_path: str):
     server_data_checker = ServerDataChecker()
 

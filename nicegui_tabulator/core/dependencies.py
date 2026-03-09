@@ -6,7 +6,9 @@ LUXON_DEFAULT_SCRIPT_URL: Final[str] = (
 )
 
 
-def import_luxon(shared: bool = True, script_url: str = LUXON_DEFAULT_SCRIPT_URL):
+def import_luxon(
+    shared: bool = True, script_url: str = LUXON_DEFAULT_SCRIPT_URL
+) -> None:
     """Inject Luxon into the page so Tabulator date/time features can work.
 
     Tabulator's date/time formatters and sorters require Luxon to be available in the
