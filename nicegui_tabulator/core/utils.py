@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Callable, Union
+from typing import Callable
 import asyncio
 import uuid
 
 from nicegui import ui, Client as ng_client
 from nicegui.awaitable_response import AwaitableResponse
 
-_TTask = Union[Callable[..., None], Callable[..., AwaitableResponse]]
+_TTask = Callable[..., None] | Callable[..., AwaitableResponse]
 
 
 class DeferredTask:
