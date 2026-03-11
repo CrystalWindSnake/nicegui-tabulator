@@ -1,6 +1,5 @@
-from __future__ import annotations
 from dataclasses import dataclass, field as dc_field
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from typing import TYPE_CHECKING
 
@@ -14,22 +13,22 @@ class CellSlotProps:
     """The name of the field in the row data."""
     value: Any
     """The value of the field in the row data."""
-    row: Dict
+    row: dict
     """The row data."""
     row_number: int
     """The position(starting from 1) of the row in the table data."""
     row_index: int
     """The index of the row in the table data."""
-    table: Tabulator = dc_field(init=True, repr=False)
+    table: "Tabulator" = dc_field(init=True, repr=False)
     """The parent Tabulator instance."""
 
-    def update_value(self, value):
+    def update_value(self, value: Any) -> None:
         """Updates the value of the field in the row data only on the server side."""
         index_field = self.table.index_field
         data = [{index_field: self.row[index_field], self.field: value}]
         self.table._update_data_on_server(data)
 
-    def update_to_client(self):
+    def update_to_client(self) -> None:
         """Updates the value of the field in the row data on the client side."""
 
         index_field = self.table.index_field
