@@ -1,6 +1,5 @@
-from __future__ import annotations
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 from nicegui import ui, app, Client
 
 _ASSETS_DIR = Path(__file__).parent / "libs"
@@ -28,7 +27,7 @@ _remove_old_theme_js = """
 """
 
 
-def use_theme(theme_name: _T_THEME_NAME, shared: bool | None = None) -> None:
+def use_theme(theme_name: _T_THEME_NAME, shared: Optional[bool] = None) -> None:
     """Use a tabulator theme.
 
     Args:
