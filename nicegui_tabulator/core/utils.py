@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from typing import Callable, Union
+from typing import Callable, List, Union
 import asyncio
 import uuid
 
@@ -12,7 +10,7 @@ _TTask = Union[Callable[..., None], Callable[..., AwaitableResponse]]
 
 class DeferredTask:
     def __init__(self):
-        self._tasks: list[_TTask] = []
+        self._tasks: List[_TTask] = []
         self.component_connected = False
 
         async def on_client_connect(

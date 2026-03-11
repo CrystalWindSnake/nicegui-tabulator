@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from warnings import warn
 
 from nicegui.awaitable_response import AwaitableResponse
@@ -24,7 +22,7 @@ class Tabulator(
     def __init__(
         self,
         options: dict,
-        row_key: str | None = "id",
+        row_key: Optional[str] = "id",
     ) -> None:
         """Create a new tabulator table.
 
@@ -41,8 +39,8 @@ class Tabulator(
         self._props["options"] = options
         self.add_resource(Path(__file__).parent / "libs")
 
-        self._cell_slot_map: dict[str, Callable] = {}
-        self._teleport_slots_cache: dict[tuple[str, int], teleport] = {}
+        self._cell_slot_map: Dict[str, Callable] = {}
+        self._teleport_slots_cache: Dict[Tuple[str, int], teleport] = {}
 
         def on_update_cell_slot(e):
             field = e.args["field"]
@@ -79,7 +77,7 @@ class Tabulator(
         return self._props["options"].get("index", "id")
 
     @property
-    def data(self) -> list[dict]:
+    def data(self) -> List[dict]:
         """Get or set the data for the tabulator table."""
         if "data" not in self._props["options"]:
             self._props["options"]["data"] = []
@@ -133,7 +131,7 @@ class Tabulator(
         """
         return self.run_method("run_table_method", name, *args, timeout=timeout)
 
-    def set_columns(self, columns: list[dict]) -> None:
+    def set_columns(self, columns: List[dict]) -> None:
         """
         To replace the current column definitions for all columns in a table.
 
@@ -185,8 +183,8 @@ class Tabulator(
     def add_column(
         self,
         definition: dict,
-        before: bool | None = None,
-        position: str | None = None,
+        before: Optional[bool] = None,
+        position: Optional[str] = None,
     ) -> None:
         """
         Add a column to the table.
@@ -216,10 +214,10 @@ class Tabulator(
         cls,
         df: "pd.DataFrame",
         *,
-        index: str | None = None,
+        index: Optional[str] = None,
         auto_index=False,
-        options: dict | None = None,
-        column_definition: Callable[[str], dict] | None = None,
+        options: Optional[dict] = None,
+        column_definition: Optional[Callable[[str], dict]] = None,
     ):
         """Create a table from a Pandas DataFrame.
 
@@ -255,7 +253,7 @@ class Tabulator(
                 '`df.columns = ["_".join(col) for col in df.columns.values]`.'
             )
 
-        columns: list[dict] = [
+        columns: List[dict] = [
             {"title": col, "field": col}
             if column_definition is None
             else {"field": col, **column_definition(col)}
@@ -355,7 +353,7 @@ class Tabulator(
 
         return wrapper
 
-    def set_data(self, data: list[dict], *, timeout: float = 1) -> AwaitableResponse:
+    def set_data(self, data: List[dict], *, timeout: float = 1) -> AwaitableResponse:
         """set the data of the table.
 
         @see https://tabulator.info/docs/6.2/data#array
@@ -368,7 +366,7 @@ class Tabulator(
         self._set_data_on_server(data)
         return self.run_table_method("setData", data, timeout=timeout)
 
-    def update_data(self, data: list[dict], *, timeout: float = 1) -> AwaitableResponse:
+    def update_data(self, data: List[dict], *, timeout: float = 1) -> AwaitableResponse:
         """update the data of the table.
 
         @see https://tabulator.info/docs/6.2/update#alter-update
@@ -383,9 +381,9 @@ class Tabulator(
 
     def add_data(
         self,
-        data: list[dict],
-        at_top: bool | None = None,
-        index: int | str | None = None,
+        data: List[dict],
+        at_top: Optional[bool] = None,
+        index: Union[int, str, None] = None,
         *,
         timeout: float = 1,
     ) -> AwaitableResponse:
@@ -410,7 +408,7 @@ class Tabulator(
         )
 
     def update_or_add_data(
-        self, data: list[dict], *, timeout: float = 1
+        self, data: List[dict], *, timeout: float = 1
     ) -> AwaitableResponse:
         """update or add data to the table.
         If the data you are passing to the table contains a mix of existing rows to be updated and new rows to be added then you can call the updateOrAddData function. This will check each row object provided and update the existing row if available, or else create a new row with the data.
@@ -446,9 +444,9 @@ class Tabulator(
 
     def _add_data_on_server(
         self,
-        data: list[dict],
-        at_top: bool | None = None,
-        index: int | str | None = None,
+        data: List[dict],
+        at_top: Optional[bool] = None,
+        index: Union[int, str, None] = None,
     ):
         at_top = (
             at_top
@@ -470,10 +468,10 @@ class Tabulator(
 
         self._set_data_on_server(self.data[:row_index] + data + self.data[row_index:])
 
-    def _set_data_on_server(self, data: list[dict]) -> None:
+    def _set_data_on_server(self, data: List[dict]) -> None:
         self._props["options"]["data"] = data[:]
 
-    def _update_data_on_server(self, data: list[dict]) -> None:
+    def _update_data_on_server(self, data: List[dict]) -> None:
         index_field = self.index_field
         update_dict = {record[index_field]: record for record in data}
 
@@ -487,7 +485,7 @@ class Tabulator(
             if update_record:
                 row.update(update_record)
 
-    def _update_or_add_data_on_server(self, data: list[dict]) -> None:
+    def _update_or_add_data_on_server(self, data: List[dict]) -> None:
         index_field = self.index_field
         update_dict = {item[index_field]: item for item in data}
 
@@ -500,9 +498,9 @@ class Tabulator(
     def print(
         self,
         *,
-        row_range_lookup: T_Row_Range_Lookup | None = None,
-        style: bool | None = True,
-        config: dict | None = None,
+        row_range_lookup: Optional[T_Row_Range_Lookup] = None,
+        style: Optional[bool] = True,
+        config: Optional[dict] = None,
     ) -> AwaitableResponse:
         """A full page printing of the contents of the table without any other elements from the page.
 
@@ -515,7 +513,7 @@ class Tabulator(
         return self.run_table_method("print", row_range_lookup, style, config)
 
     def delete_rows(
-        self, rows_indexes: list[Any], timeout: float = 1
+        self, rows_indexes: List[Any], timeout: float = 1
     ) -> AwaitableResponse:
         """Delete rows from the table by their index values.
 
@@ -527,7 +525,7 @@ class Tabulator(
         self._delete_rows_on_server(rows_indexes)
         return self.run_table_method("deleteRow", rows_indexes, timeout=timeout)
 
-    def _delete_rows_on_server(self, rows_indexes: list[Any]) -> None:
+    def _delete_rows_on_server(self, rows_indexes: List[Any]) -> None:
         index_field = self.index_field
         set_indexes = set(rows_indexes)
         new_data = [
@@ -535,7 +533,7 @@ class Tabulator(
         ]
         self._set_data_on_server(data=new_data)
 
-    async def get_data(self, timeout: float = 1) -> list[dict[str, Any]]:
+    async def get_data(self, timeout: float = 1) -> List[Dict[str, Any]]:
         """Get the data from the table.
 
         Args:
@@ -544,6 +542,6 @@ class Tabulator(
         """
         return await self.run_table_method("getData", timeout=timeout)
 
-    async def get_selected_data(self, *, timeout: float = 1) -> list[dict]:
+    async def get_selected_data(self, *, timeout: float = 1) -> List[dict]:
         """Get the selected data from the table."""
         return await self.run_table_method("getSelectedData", timeout=timeout)
